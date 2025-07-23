@@ -58,61 +58,56 @@ class PianoOptimizer {
      * Configurar controles de audio
      */
     setupAudioControls() {
-        if (this.volumeSlider && this.volumeValue) {
-            this.volumeSlider.addEventListener('input', (e) => {
-                const volume = parseInt(e.target.value);
-                this.volumeValue.textContent = volume + '%';
-                if (typeof pianoAudio !== 'undefined') {
-                    pianoAudio.setMasterVolume(volume / 100);
+        // Configurar controles usando UIUtils
+        UIUtils.setupAudioControls({
+            volume: {
+                sliderId: 'volumeSlider',
+                valueId: 'volumeValue',
+                onChange: (volume) => {
+                    AudioUtils.setMasterVolume(volume / 100);
                 }
-            });
-        }
-
-        if (this.testAudioBtn) {
-            this.testAudioBtn.addEventListener('click', () => this.testAudio());
-        }
-
-        if (this.stopAllBtn) {
-            this.stopAllBtn.addEventListener('click', () => this.stopAllAudio());
-        }
-
-        if (this.tempoSlider && this.tempoValue && this.tempoDescription) {
-            this.tempoSlider.addEventListener('input', (e) => {
-                const tempo = parseInt(e.target.value);
-                this.currentTempo = tempo;
-                this.tempoValue.textContent = tempo;
-
-                // Actualizar descripción del tempo usando configuración
-                const description = AudioConfig.utils.getTempoDescription.call(AudioConfig, tempo);
-                this.tempoDescription.textContent = description;
-            });
-        }
+            },
+            tempo: {
+                sliderId: 'tempoSlider',
+                valueId: 'tempoValue',
+                onChange: (tempo) => {
+                    this.currentTempo = tempo;
+                    // Actualizar descripción del tempo usando configuración
+                    const description = AudioConfig.utils.getTempoDescription.call(AudioConfig, tempo);
+                    document.getElementById('tempoDescription').textContent = description;
+                }
+            },
+            testButton: {
+                buttonId: 'testAudioBtn',
+                onClick: () => this.testAudio()
+            },
+            stopButton: {
+                buttonId: 'stopAllBtn',
+                onClick: () => this.stopAllAudio()
+            }
+        });
     }
 
     /**
      * Probar el sistema de audio
      */
     async testAudio() {
-        try {
-            if (typeof pianoAudio === 'undefined') {
-                alert('Sistema de audio no disponible');
-                return;
+        const button = this.testAudioBtn;
+        if (!button) return;
+
+        await UIUtils.setupButtonWithLoading(
+            button,
+            '🎵 Reproduciendo...',
+            '🎵 Probar Audio',
+            async () => {
+                if (!AudioUtils.isAudioAvailable()) {
+                    throw new Error('Sistema de audio no disponible');
+                }
+
+                // Tocar nota de prueba usando configuración
+                await pianoAudio.playNote(AudioConfig.ui.testNote, AudioConfig.ui.testDuration);
             }
-
-            this.testAudioBtn.disabled = true;
-            this.testAudioBtn.textContent = '🎵 Reproduciendo...';
-
-            // Tocar nota de prueba usando configuración
-            await pianoAudio.playNote(AudioConfig.ui.testNote, AudioConfig.ui.testDuration);
-
-            this.testAudioBtn.disabled = false;
-            this.testAudioBtn.textContent = '🎵 Probar Audio';
-        } catch (error) {
-            console.error('Error al probar audio:', error);
-            alert('Error al reproducir audio. Verifica que tu navegador permita audio.');
-            this.testAudioBtn.disabled = false;
-            this.testAudioBtn.textContent = '🎵 Probar Audio';
-        }
+        );
     }
 
     /**
@@ -145,9 +140,7 @@ class PianoOptimizer {
      * Detener todo el audio
      */
     stopAllAudio() {
-        if (typeof pianoAudio !== 'undefined') {
-            pianoAudio.stopAll();
-        }
+        AudioUtils.stopAllAudio();
 
         // Resetear el botón de reproducir progresión si existe
         const playButton = document.getElementById('playProgressionBtn');
@@ -209,29 +202,29 @@ class PianoOptimizer {
      * Mostrar animación de carga
      */
     showLoading() {
-        this.loading.style.display = 'block';
-        this.resultsSection.style.display = 'none';
+        UIUtils.toggleVisibility('loading', true);
+        UIUtils.toggleVisibility('resultsSection', false);
     }
 
     /**
      * Ocultar animación de carga
      */
     hideLoading() {
-        this.loading.style.display = 'none';
+        UIUtils.toggleVisibility('loading', false);
     }
 
     /**
      * Mostrar sección de resultados
      */
     showResults() {
-        this.resultsSection.style.display = 'block';
+        UIUtils.toggleVisibility('resultsSection', true);
     }
 
     /**
      * Ocultar sección de resultados
      */
     hideResults() {
-        this.resultsSection.style.display = 'none';
+        UIUtils.toggleVisibility('resultsSection', false);
     }
 
     /**
@@ -327,14 +320,17 @@ class PianoOptimizer {
             <div class="chord-type">${chordData[item.chordKey][item.variation].inversion}</div>
         `;
 
-        chordCard.addEventListener('click', () => {
-            // Remover clase activa de todos los acordes
-            document.querySelectorAll('.chord-card').forEach(card => {
-                card.classList.remove('active');
-            });
+        chordCard.addEventListener('click', async () => {
+            // Remover clase activa de todos los acordes usando UIUtils
+            UIUtils.toggleClass('.chord-card', 'active', false);
 
             // Añadir clase activa al acorde seleccionado
             chordCard.classList.add('active');
+
+            // Reproducir el acorde automáticamente al seleccionarlo
+            const chordObj = chordData[item.chordKey];
+            const variationData = chordObj[item.variation];
+            await AudioUtils.playChordSelection(variationData);
 
             // Obtener el acorde anterior para mostrar transiciones
             const previousChord = index > 0 ? progression[index - 1] : null;
@@ -373,18 +369,18 @@ class PianoOptimizer {
 
             <!-- Audio Controls for Chord -->
             <div class="flex justify-center gap-4 my-4">
-                <button
-                    class="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
-                    onclick="playCurrentChord('${JSON.stringify(variationData.notes).replace(/"/g, '&quot;')}')"
-                >
-                    🎵 Reproducir Acorde
-                </button>
-                <button
-                    class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
-                    onclick="playNotesSequentially('${JSON.stringify(variationData.notes).replace(/"/g, '&quot;')}')"
-                >
-                    🎼 Reproducir Notas Secuencialmente
-                </button>
+                ${UIUtils.createAudioButton(
+                    'Reproducir Acorde',
+                    '🎵',
+                    'bg-green-500',
+                    `playCurrentChord('${JSON.stringify(variationData.notes).replace(/"/g, '&quot;')}')`
+                )}
+                ${UIUtils.createAudioButton(
+                    'Reproducir Notas Secuencialmente', 
+                    '🎼',
+                    'bg-blue-500',
+                    `playNotesSequentially('${JSON.stringify(variationData.notes).replace(/"/g, '&quot;')}')`
+                )}
             </div>
 
             ${transitionInfo}
@@ -432,39 +428,23 @@ class PianoOptimizer {
     }
 }
 
+// Las funciones globales ahora están centralizadas en audio-utils.js
+// Se mantiene por compatibilidad pero delegan a AudioUtils
+
 /**
- * Función global para reproducir un acorde
+ * Función global para reproducir un acorde (DEPRECATED - usar AudioUtils)
  * @param {string} notesJson - Notas del acorde en formato JSON
  */
 async function playCurrentChord(notesJson) {
-    try {
-        const notes = JSON.parse(notesJson.replace(/&quot;/g, '"'));
-        if (typeof pianoAudio !== 'undefined') {
-            await pianoAudio.playChord(notes, 2.0);
-        }
-    } catch (error) {
-        console.error('Error al reproducir acorde:', error);
-        alert('Error al reproducir el acorde');
-    }
+    return AudioUtils.playChordFromJson(notesJson);
 }
 
 /**
- * Función global para reproducir notas secuencialmente
+ * Función global para reproducir notas secuencialmente (DEPRECATED - usar AudioUtils)
  * @param {string} notesJson - Notas en formato JSON
  */
 async function playNotesSequentially(notesJson) {
-    try {
-        const notes = JSON.parse(notesJson.replace(/&quot;/g, '"'));
-        if (typeof pianoAudio !== 'undefined') {
-            for (let i = 0; i < notes.length; i++) {
-                await pianoAudio.playNote(notes[i], 0.8);
-                await pianoAudio.delay(400); // Pausa entre notas
-            }
-        }
-    } catch (error) {
-        console.error('Error al reproducir notas secuencialmente:', error);
-        alert('Error al reproducir las notas');
-    }
+    return AudioUtils.playNotesSequentiallyFromJson(notesJson);
 }
 
 // Inicializar la aplicación cuando el DOM esté listo

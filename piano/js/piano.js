@@ -131,19 +131,8 @@ function createTransitionInfo(movements, previousChord) {
     return '';
 }
 
-/**
- * Función global para reproducir el sonido de una tecla
- * @param {string} note - Nota a reproducir
- */
-async function playKeySound(note) {
-    try {
-        if (typeof pianoAudio !== 'undefined') {
-            await pianoAudio.playNote(note, 1.0);
-        }
-    } catch (error) {
-        console.warn('No se pudo reproducir la nota:', error);
-    }
-}
+// playKeySound ahora está centralizado en audio-utils.js
+// Se mantiene compatibilidad a través de window.playKeySound
 
 // Exportar para uso en módulos
 if (typeof module !== 'undefined' && module.exports) {
