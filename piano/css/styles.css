@@ -1,0 +1,364 @@
+/* Estilos personalizados para el Optimizador de Digitaciones de Piano */
+
+/* === Configuración del Piano === */
+.keyboard-container {
+    background: #f5f5f5;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.keyboard {
+    height: 120px;
+    background: #333;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+@media (min-width: 640px) {
+    .keyboard {
+        height: 160px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .keyboard {
+        height: 180px;
+    }
+}
+
+.keyboard-keys {
+    display: block;
+    height: 100%;
+    position: relative;
+    width: 100%;
+    background: #f0f0f0;
+    border-radius: 8px;
+    padding: 10px;
+    overflow: hidden;
+}
+
+/* === Teclas del Piano === */
+.white-key {
+    position: absolute;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #ccc;
+    border-radius: 0 0 8px 8px;
+    z-index: 1;
+    height: 85%;
+    width: 4.28571428571%; /* 100% / 23.33 teclas blancas visibles */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.1s ease;
+}
+
+.white-key:hover {
+    background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+    transform: translateY(2px);
+}
+
+.black-key {
+    position: absolute;
+    background: linear-gradient(to bottom, #333 0%, #000 100%);
+    border: 1px solid #000;
+    border-radius: 0 0 5px 5px;
+    z-index: 2;
+    height: 55%;
+    width: 2.5%;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+    transition: all 0.1s ease;
+}
+
+.black-key:hover {
+    background: linear-gradient(to bottom, #444 0%, #111 100%);
+    transform: translateY(1px);
+}
+
+/* Posicionamiento específico para teclas blancas (C2 a E5) */
+.white-key[data-note="C2"] { left: 0%; }
+.white-key[data-note="D2"] { left: 4.28571428571%; }
+.white-key[data-note="E2"] { left: 8.57142857143%; }
+.white-key[data-note="F2"] { left: 12.85714285714%; }
+.white-key[data-note="G2"] { left: 17.14285714286%; }
+.white-key[data-note="A2"] { left: 21.42857142857%; }
+.white-key[data-note="B2"] { left: 25.71428571429%; }
+.white-key[data-note="C3"] { left: 30%; }
+.white-key[data-note="D3"] { left: 34.28571428571%; }
+.white-key[data-note="E3"] { left: 38.57142857143%; }
+.white-key[data-note="F3"] { left: 42.85714285714%; }
+.white-key[data-note="G3"] { left: 47.14285714286%; }
+.white-key[data-note="A3"] { left: 51.42857142857%; }
+.white-key[data-note="B3"] { left: 55.71428571429%; }
+.white-key[data-note="C4"] { left: 60%; }
+.white-key[data-note="D4"] { left: 64.28571428571%; }
+.white-key[data-note="E4"] { left: 68.57142857143%; }
+.white-key[data-note="F4"] { left: 72.85714285714%; }
+.white-key[data-note="G4"] { left: 77.14285714286%; }
+.white-key[data-note="A4"] { left: 81.42857142857%; }
+.white-key[data-note="B4"] { left: 85.71428571429%; }
+.white-key[data-note="C5"] { left: 90%; }
+.white-key[data-note="D5"] { left: 94.28571428571%; }
+
+/* Posicionamiento específico para teclas negras (sostenidos) */
+.black-key[data-note="C#2"] { left: 3%; }
+.black-key[data-note="D#2"] { left: 7.5%; }
+.black-key[data-note="F#2"] { left: 15.5%; }
+.black-key[data-note="G#2"] { left: 19.5%; }
+.black-key[data-note="A#2"] { left: 23.5%; }
+.black-key[data-note="C#3"] { left: 33%; }
+.black-key[data-note="D#3"] { left: 37.5%; }
+.black-key[data-note="F#3"] { left: 45.5%; }
+.black-key[data-note="G#3"] { left: 49.5%; }
+.black-key[data-note="A#3"] { left: 53.5%; }
+.black-key[data-note="C#4"] { left: 63%; }
+.black-key[data-note="D#4"] { left: 67.5%; }
+.black-key[data-note="F#4"] { left: 75.5%; }
+.black-key[data-note="G#4"] { left: 79.5%; }
+.black-key[data-note="A#4"] { left: 83.5%; }
+.black-key[data-note="C#5"] { left: 93%; }
+.black-key[data-note="D#5"] { left: 97.5%; }
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .keyboard-keys {
+        padding: 5px;
+    }
+
+    .white-key {
+        height: 80%;
+        border-radius: 0 0 4px 4px;
+    }
+
+    .black-key {
+        height: 50%;
+        width: 2%;
+        border-radius: 0 0 3px 3px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .white-key {
+        height: 90%;
+        border-radius: 0 0 10px 10px;
+    }
+
+    .black-key {
+        height: 60%;
+        width: 3%;
+        border-radius: 0 0 6px 6px;
+    }
+}
+
+/* === Indicadores de Dedos en el Piano === */
+.key-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    font-size: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Indicadores en teclas negras */
+.black-key .key-indicator {
+    bottom: 6px;
+    width: 14px;
+    height: 14px;
+    font-size: 0.55rem;
+}
+
+@media (min-width: 640px) {
+    .key-indicator {
+        width: 22px;
+        height: 22px;
+        font-size: 0.7rem;
+        bottom: 10px;
+    }
+
+    .black-key .key-indicator {
+        width: 16px;
+        height: 16px;
+        font-size: 0.6rem;
+        bottom: 8px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .key-indicator {
+        width: 26px;
+        height: 26px;
+        font-size: 0.8rem;
+        bottom: 12px;
+    }
+
+    .black-key .key-indicator {
+        width: 20px;
+        height: 20px;
+        font-size: 0.65rem;
+        bottom: 10px;
+    }
+}
+
+/* === Colores para cada dedo === */
+.finger-1 {
+    background: #e74c3c; /* Rojo para pulgar */
+}
+
+.finger-2 {
+    background: #f39c12; /* Naranja para índice */
+}
+
+.finger-3 {
+    background: #2ecc71; /* Verde para medio */
+}
+
+.finger-4 {
+    background: #3498db; /* Azul para anular */
+}
+
+.finger-5 {
+    background: #9b59b6; /* Púrpura para meñique */
+}
+
+/* === Badges de dedos === */
+.finger-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.7rem;
+    margin-right: 6px;
+}
+
+@media (min-width: 640px) {
+    .finger-badge {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+        margin-right: 8px;
+    }
+}
+
+/* === Tarjetas de Acordes === */
+.chord-card {
+    background: #ecf0f1;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.chord-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.chord-card.active {
+    border-color: #3498db;
+    background: #d6eaf8;
+}
+
+.chord-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+@media (min-width: 640px) {
+    .chord-name {
+        font-size: 1.3rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .chord-name {
+        font-size: 1.4rem;
+    }
+}
+
+.chord-type {
+    font-size: 0.8rem;
+    color: #34495e;
+    margin-top: 4px;
+}
+
+@media (min-width: 640px) {
+    .chord-type {
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+}
+
+/* === Spinner de carga === */
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === Utilidades adicionales === */
+.section-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .section-card {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .section-card {
+        padding: 2rem;
+    }
+}
+
+.gradient-header {
+    background: linear-gradient(135deg, #3498db 0%, #2563eb 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 16px rgba(52, 152, 219, 0.2);
+}
+
+@media (min-width: 640px) {
+    .gradient-header {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .gradient-header {
+        padding: 2rem;
+    }
+}
