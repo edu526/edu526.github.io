@@ -5,7 +5,7 @@
 .chord-card {
     background: #ecf0f1;
     border-radius: 8px;
-    padding: 12px;
+    padding: 10px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -677,5 +677,313 @@
     50% {
         background: rgba(255, 255, 255, 0.4);
         transform: scale(1.05);
+    }
+}
+
+/* === Sección de Secuencia de Acordes === */
+.chord-sequence-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.chord-sequence-header h3 {
+    color: #1e293b;
+    margin: 0;
+}
+
+.chord-sequence-scroll {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 12px;
+    padding: 8px 0;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+    position: relative;
+    min-height: 120px; /* Asegurar altura mínima */
+    align-items: flex-start;
+}
+
+.chord-sequence-scroll:empty::before {
+    content: 'Los acordes aparecerán aquí después de calcular las digitaciones';
+    color: #64748b;
+    font-style: italic;
+    padding: 2rem;
+    text-align: center;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+    .chord-sequence-scroll:empty::before {
+        content: 'Los acordes aparecerán aquí después del cálculo';
+        padding: 1.5rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+.chord-sequence-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.chord-sequence-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.chord-sequence-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.chord-sequence-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* === Indicadores de scroll para la secuencia principal === */
+.chord-sequence-scroll::before,
+.chord-sequence-scroll::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 6px; /* Espacio para scrollbar */
+    width: 20px;
+    pointer-events: none;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+
+.chord-sequence-scroll::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255,255,255,0.9), transparent);
+}
+
+.chord-sequence-scroll::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
+}
+
+/* === Acordes en la secuencia principal === */
+.chord-sequence-scroll .chord-card {
+    flex-shrink: 0;
+    min-width: 140px;
+    max-width: 180px;
+    margin-bottom: 0;
+    padding: 8px 12px;
+}
+
+/* === Responsive para el contenido de acordes === */
+@media (max-width: 480px) {
+    .chord-sequence-scroll .chord-card {
+        min-width: 120px;
+        max-width: 140px;
+        padding: 6px 8px;
+    }
+
+    .chord-sequence-scroll .chord-card .chord-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .chord-sequence-scroll .chord-card .chord-type,
+    .chord-sequence-scroll .chord-card .fingering-display {
+        font-size: 0.75rem;
+        line-height: 1.1;
+    }
+
+    .chord-sequence-scroll .chord-card .fingering-display {
+        margin-top: 4px;
+    }
+
+    .chord-sequence-scroll .chord-card .finger-number {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+        margin: 1px;
+    }
+}
+
+@media (max-width: 380px) {
+    .chord-sequence-scroll .chord-card {
+        min-width: 110px;
+        max-width: 130px;
+        padding: 5px 6px;
+    }
+
+    .chord-sequence-scroll .chord-card .chord-name {
+        font-size: 0.8rem;
+    }
+
+    .chord-sequence-scroll .chord-card .chord-type {
+        font-size: 0.7rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .chord-sequence-scroll .chord-card {
+        min-width: 160px;
+        max-width: 200px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .chord-sequence-scroll .chord-card {
+        min-width: 170px;
+        max-width: 210px;
+    }
+}
+
+/* === Responsive para la sección === */
+@media (max-width: 640px) {
+    .chord-sequence-header {
+        padding: 1rem !important;
+        padding-bottom: 0.75rem !important;
+    }
+
+    .chord-sequence-content {
+        padding: 1rem !important;
+        padding-top: 0.75rem !important;
+    }
+
+    .chord-sequence-header .flex {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .chord-sequence-header h3 {
+        font-size: 1.25rem;
+        text-align: center;
+        margin: 0;
+    }
+
+    /* Mantener botones horizontales en mobile */
+    .chord-sequence-header .flex > div {
+        flex-direction: row !important;
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .chord-sequence-header {
+        padding: 0.75rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    .chord-sequence-content {
+        padding: 0.75rem !important;
+        padding-top: 0.5rem !important;
+    }
+
+    .chord-sequence-header h3 {
+        font-size: 1.125rem;
+    }
+
+    .chord-sequence-scroll {
+        gap: 8px;
+        min-height: 100px;
+    }
+}
+
+/* === Botones de Control Simplificados === */
+.control-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.control-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.play-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.play-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.stop-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.stop-btn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+/* === Estado de reproducción === */
+.play-btn.playing {
+    animation: pulse-control 2s ease-in-out infinite;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.play-btn.playing::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%);
+    background-size: 8px 8px;
+    animation: stripes-control 1s linear infinite;
+    border-radius: 50%;
+}
+
+@keyframes pulse-control {
+    0%, 100% {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 0 0 8px rgba(16, 185, 129, 0.1);
+    }
+}
+
+@keyframes stripes-control {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 8px 8px;
+    }
+}
+
+/* === Responsive para botones === */
+@media (max-width: 480px) {
+    .control-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .control-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
     }
 }

@@ -148,12 +148,8 @@ class PianoOptimizer {
         // Remover indicador de progresión
         this.removeProgressionIndicator();
 
-        // Resetear el botón de reproducir progresión si existe
-        const playButton = document.getElementById('playProgressionBtn');
-        if (playButton) {
-            playButton.disabled = false;
-            playButton.textContent = '🎶 Reproducir Progresión Completa';
-        }
+        // Resetear los botones de control de progresión si existen
+        this.setProgressionControlsState('stopped');
     }
 
     /**
@@ -251,27 +247,17 @@ class PianoOptimizer {
         this.chordSequence.innerHTML = "";
         this.currentProgression = progression;
 
+        // Detener cualquier progresión activa y resetear botones
+        this.stopFullProgression();
+        this.setProgressionControlsState('stopped');
+
         // Crear y configurar sticky header de acordes
         this.createStickyChordHeader(progression);
 
-        // Agregar botón para reproducir toda la progresión
-        const playAllButton = document.createElement('div');
-        playAllButton.className = 'text-center mb-6';
-        playAllButton.innerHTML = `
-            <button
-                id="playProgressionBtn"
-                class="px-6 py-3 bg-purple-500 text-white rounded-xl font-semibold text-lg hover:bg-purple-600 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-            >
-                🎶 Reproducir Progresión Completa
-            </button>
-        `;
-        this.chordSequence.appendChild(playAllButton);
+        // Configurar event listeners para los botones de control
+        this.setupProgressionControlButtons();
 
-        // Agregar event listener para el botón
-        document.getElementById('playProgressionBtn').addEventListener('click', () => {
-            this.playFullProgression();
-        });
-
+        // Agregar acordes a la secuencia
         progression.forEach((item, index) => {
             const chordCard = this.createChordCard(item, index, progression);
             this.chordSequence.appendChild(chordCard);
@@ -282,6 +268,45 @@ class PianoOptimizer {
                 this.showChordInfo(item.chord, item.chordKey, item.variation, null);
             }
         });
+    }
+
+    /**
+     * Configurar event listeners para los botones de control de progresión
+     */
+    setupProgressionControlButtons() {
+        const playBtn = document.getElementById('playProgressionBtn');
+        const stopBtn = document.getElementById('stopProgressionBtn');
+
+        if (!playBtn || !stopBtn) {
+            console.warn('Botones de progresión no encontrados');
+            return;
+        }
+
+        // Remover event listeners existentes si los hay
+        const newPlayBtn = playBtn.cloneNode(true);
+        const newStopBtn = stopBtn.cloneNode(true);
+
+        playBtn.parentNode.replaceChild(newPlayBtn, playBtn);
+        stopBtn.parentNode.replaceChild(newStopBtn, stopBtn);
+
+        // Agregar nuevos event listeners
+        newPlayBtn.addEventListener('click', () => {
+            console.log('Play button clicked, current state:', newPlayBtn.textContent);
+            // Si está en modo pause (⏸️), detener la progresión
+            if (newPlayBtn.textContent === '⏸️') {
+                this.stopFullProgression();
+            } else {
+                // Si está en modo play (▶️), iniciar progresión
+                this.playFullProgression();
+            }
+        });
+
+        newStopBtn.addEventListener('click', () => {
+            console.log('Stop button clicked');
+            this.stopFullProgression();
+        });
+
+        console.log('Event listeners configurados para botones de progresión');
     }
 
     /**
@@ -400,13 +425,9 @@ class PianoOptimizer {
         const mainChords = document.querySelectorAll('.chord-card:not(.sticky-chord)');
         mainChords.forEach(chord => chord.classList.remove('active'));
 
-        // Buscar el acorde correspondiente en la lista principal (excluyendo botón)
-        const mainChordCards = Array.from(mainChords).filter(card =>
-            !card.querySelector('#playProgressionBtn')
-        );
-
-        if (index < mainChordCards.length) {
-            mainChordCards[index].classList.add('active');
+        // Buscar el acorde correspondiente en la lista principal
+        if (index < mainChords.length) {
+            mainChords[index].classList.add('active');
         }
 
         // Reproducir el acorde
@@ -428,9 +449,11 @@ class PianoOptimizer {
             return;
         }
 
-        const button = document.getElementById('playProgressionBtn');
-        button.disabled = true;
-        button.textContent = '🎶 Reproduciendo...';
+        const playBtn = document.getElementById('playProgressionBtn');
+        const stopBtn = document.getElementById('stopProgressionBtn');
+
+        // Cambiar estado de los botones
+        this.setProgressionControlsState('playing');
 
         // Crear indicador de progresión flotante
         this.createProgressionIndicator();
@@ -451,7 +474,12 @@ class PianoOptimizer {
 
             // Callback para manejar el cambio de acorde durante la reproducción
             const onChordStart = (chordIndex, chord) => {
-                this.highlightCurrentChord(chordIndex, false); // Sin auto-scroll
+                if (chordIndex === -1) {
+                    // Progresión terminada
+                    this.setProgressionControlsState('stopped');
+                } else {
+                    this.highlightCurrentChord(chordIndex, false); // Sin auto-scroll
+                }
             };
 
             await pianoAudio.playProgression(audioProgression, timing.chordDuration, timing.pauseBetween, onChordStart);
@@ -459,11 +487,58 @@ class PianoOptimizer {
             console.error('Error al reproducir la progresión:', error);
             alert('Error al reproducir la progresión');
         } finally {
-            // Limpiar resaltado y restaurar botón
+            // Limpiar resaltado y restaurar botones
             this.highlightCurrentChord(-1);
             this.removeProgressionIndicator();
-            button.disabled = false;
-            button.textContent = '🎶 Reproducir Progresión Completa';
+            this.setProgressionControlsState('stopped');
+        }
+    }
+
+    /**
+     * Detener la progresión actual
+     */
+    stopFullProgression() {
+        console.log('Deteniendo progresión...');
+
+        // Marcar progresión como cancelada si el audio está disponible
+        if (typeof pianoAudio !== 'undefined') {
+            pianoAudio.isProgressionCancelled = true;
+            // Detener todo el audio
+            pianoAudio.stopAll();
+        }
+
+        // Limpiar resaltado y restaurar botones
+        this.highlightCurrentChord(-1);
+        this.removeProgressionIndicator();
+        this.setProgressionControlsState('stopped');
+
+        console.log('Progresión detenida');
+    }
+
+    /**
+     * Configurar estado de los botones de control de progresión
+     * @param {string} state - 'playing' o 'stopped'
+     */
+    setProgressionControlsState(state) {
+        const playBtn = document.getElementById('playProgressionBtn');
+        const stopBtn = document.getElementById('stopProgressionBtn');
+
+        if (!playBtn || !stopBtn) return;
+
+        if (state === 'playing') {
+            playBtn.classList.add('playing');
+            playBtn.disabled = false; // Permitir clic para pausar
+            playBtn.textContent = '⏸️'; // Cambiar a pause cuando está reproduciendo
+            playBtn.title = 'Pausar progresión';
+
+            stopBtn.style.display = 'flex';
+        } else {
+            playBtn.classList.remove('playing');
+            playBtn.disabled = false;
+            playBtn.textContent = '▶️'; // Volver a play
+            playBtn.title = 'Reproducir progresión';
+
+            stopBtn.style.display = 'none';
         }
     }
 
@@ -541,7 +616,7 @@ class PianoOptimizer {
         if (chordIndex >= 0) {
             // Resaltar en la lista principal
             const mainChordCards = Array.from(allChordCards).filter(card =>
-                !card.querySelector('#playProgressionBtn') && !card.classList.contains('sticky-chord')
+                !card.classList.contains('sticky-chord')
             );
 
             if (chordIndex < mainChordCards.length) {
@@ -549,7 +624,24 @@ class PianoOptimizer {
                 if (currentCard) {
                     currentCard.classList.add('playing');
 
-                    // Solo hacer scroll si está habilitado Y el elemento no es visible
+                    // Auto-scroll horizontal en la sección principal
+                    const mainContainer = document.getElementById('chordSequence');
+                    if (mainContainer) {
+                        const cardRect = currentCard.getBoundingClientRect();
+                        const containerRect = mainContainer.getBoundingClientRect();
+
+                        // Verificar si el acorde está fuera de la vista horizontal
+                        if (cardRect.left < containerRect.left || cardRect.right > containerRect.right) {
+                            currentCard.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'nearest',
+                                inline: 'center'
+                            });
+                            console.log(`Auto-scroll en sección principal para acorde ${chordIndex + 1}`);
+                        }
+                    }
+
+                    // Solo hacer scroll vertical si está habilitado Y el elemento no es visible
                     if (autoScroll && !this.isElementInViewport(currentCard)) {
                         currentCard.scrollIntoView({
                             behavior: 'smooth',

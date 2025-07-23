@@ -146,11 +146,36 @@
                 </div>
 
                 <!-- Chord Sequence -->
-                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-                    <h3 class="text-xl md:text-2xl font-bold text-secondary mb-6 text-center">
-                        🎼 Secuencia de Acordes
-                    </h3>
-                    <div id="chordSequence" class="flex flex-wrap justify-center gap-4"></div>
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <!-- Header de la sección con controles -->
+                    <div class="chord-sequence-header p-6 md:p-8 pb-4 border-b border-gray-200">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <h3 class="text-xl md:text-2xl font-bold text-secondary">
+                                🎼 Secuencia de Acordes
+                            </h3>
+                            <div class="flex items-center gap-3">
+                                <button
+                                    id="playProgressionBtn"
+                                    class="control-btn play-btn"
+                                    title="Reproducir progresión"
+                                >
+                                    ▶️
+                                </button>
+                                <button
+                                    id="stopProgressionBtn"
+                                    class="control-btn stop-btn"
+                                    style="display: none;"
+                                    title="Detener progresión"
+                                >
+                                    ⏹️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Contenedor de acordes con scroll horizontal -->
+                    <div class="chord-sequence-content p-6 md:p-8 pt-4">
+                        <div id="chordSequence" class="chord-sequence-scroll"></div>
+                    </div>
                 </div>
 
                 <!-- Chord Information -->
