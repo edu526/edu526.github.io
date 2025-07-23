@@ -32,7 +32,7 @@ function createPianoKeyboard(notes, fingering) {
     whiteKeys.forEach(note => {
         const finger = highlightedNotes[note];
         const indicator = finger ? `<div class="key-indicator finger-${finger}">${finger}</div>` : '';
-        whiteKeysHTML += `<div class="white-key" data-note="${note}">${indicator}</div>`;
+        whiteKeysHTML += `<div class="white-key clickable-key" data-note="${note}" onclick="playKeySound('${note}')">${indicator}</div>`;
     });
 
     // Crear HTML de teclas negras
@@ -40,7 +40,7 @@ function createPianoKeyboard(notes, fingering) {
     blackKeys.forEach(note => {
         const finger = highlightedNotes[note];
         const indicator = finger ? `<div class="key-indicator finger-${finger}">${finger}</div>` : '';
-        blackKeysHTML += `<div class="black-key" data-note="${note}">${indicator}</div>`;
+        blackKeysHTML += `<div class="black-key clickable-key" data-note="${note}" onclick="playKeySound('${note}')">${indicator}</div>`;
     });
 
     return `
@@ -59,12 +59,15 @@ function createPianoKeyboard(notes, fingering) {
 /**
  * Función para crear badges de notas musicales
  * @param {string[]} notes - Array de notas
+ * @param {number[]} fingering - Array de digitaciones correspondientes
  * @returns {string} - HTML con badges de notas
  */
-function createNoteBadges(notes) {
-    return notes.map(note =>
-        `<div class="w-12 h-12 sm:w-14 sm:h-14 bg-primary text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base lg:text-lg shadow-md">${note}</div>`
-    ).join('');
+function createNoteBadges(notes, fingering = null) {
+    return notes.map((note, index) => {
+        const finger = fingering ? fingering[index] : null;
+        const colorClass = finger ? `finger-${finger}` : 'bg-primary';
+        return `<div class="w-12 h-12 sm:w-14 sm:h-14 ${colorClass} text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base lg:text-lg shadow-md">${note}</div>`;
+    }).join('');
 }
 
 /**
@@ -126,6 +129,20 @@ function createTransitionInfo(movements, previousChord) {
         `;
     }
     return '';
+}
+
+/**
+ * Función global para reproducir el sonido de una tecla
+ * @param {string} note - Nota a reproducir
+ */
+async function playKeySound(note) {
+    try {
+        if (typeof pianoAudio !== 'undefined') {
+            await pianoAudio.playNote(note, 1.0);
+        }
+    } catch (error) {
+        console.warn('No se pudo reproducir la nota:', error);
+    }
 }
 
 // Exportar para uso en módulos

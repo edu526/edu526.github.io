@@ -1,5 +1,43 @@
 /* Estilos personalizados para el Optimizador de Digitaciones de Piano */
 
+/* === Estilos de Audio Controls === */
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    border-radius: 3px;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #6366f1;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #6366f1;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
 /* === Configuración del Piano === */
 .keyboard-container {
     background: #f5f5f5;
@@ -46,7 +84,7 @@
     border-radius: 0 0 8px 8px;
     z-index: 1;
     height: 85%;
-    width: 4.28571428571%; /* 100% / 23.33 teclas blancas visibles */
+    width: 4.16666667%; /* 100% / 24 teclas blancas (C2 a E5) */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.1s ease;
 }
@@ -54,6 +92,16 @@
 .white-key:hover {
     background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
     transform: translateY(2px);
+}
+
+.clickable-key {
+    cursor: pointer;
+    user-select: none;
+}
+
+.clickable-key:active {
+    transform: translateY(3px) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
 }
 
 .black-key {
@@ -75,47 +123,48 @@
 
 /* Posicionamiento específico para teclas blancas (C2 a E5) */
 .white-key[data-note="C2"] { left: 0%; }
-.white-key[data-note="D2"] { left: 4.28571428571%; }
-.white-key[data-note="E2"] { left: 8.57142857143%; }
-.white-key[data-note="F2"] { left: 12.85714285714%; }
-.white-key[data-note="G2"] { left: 17.14285714286%; }
-.white-key[data-note="A2"] { left: 21.42857142857%; }
-.white-key[data-note="B2"] { left: 25.71428571429%; }
-.white-key[data-note="C3"] { left: 30%; }
-.white-key[data-note="D3"] { left: 34.28571428571%; }
-.white-key[data-note="E3"] { left: 38.57142857143%; }
-.white-key[data-note="F3"] { left: 42.85714285714%; }
-.white-key[data-note="G3"] { left: 47.14285714286%; }
-.white-key[data-note="A3"] { left: 51.42857142857%; }
-.white-key[data-note="B3"] { left: 55.71428571429%; }
-.white-key[data-note="C4"] { left: 60%; }
-.white-key[data-note="D4"] { left: 64.28571428571%; }
-.white-key[data-note="E4"] { left: 68.57142857143%; }
-.white-key[data-note="F4"] { left: 72.85714285714%; }
-.white-key[data-note="G4"] { left: 77.14285714286%; }
-.white-key[data-note="A4"] { left: 81.42857142857%; }
-.white-key[data-note="B4"] { left: 85.71428571429%; }
-.white-key[data-note="C5"] { left: 90%; }
-.white-key[data-note="D5"] { left: 94.28571428571%; }
+.white-key[data-note="D2"] { left: 4.16666667%; }
+.white-key[data-note="E2"] { left: 8.33333333%; }
+.white-key[data-note="F2"] { left: 12.5%; }
+.white-key[data-note="G2"] { left: 16.66666667%; }
+.white-key[data-note="A2"] { left: 20.83333333%; }
+.white-key[data-note="B2"] { left: 25%; }
+.white-key[data-note="C3"] { left: 29.16666667%; }
+.white-key[data-note="D3"] { left: 33.33333333%; }
+.white-key[data-note="E3"] { left: 37.5%; }
+.white-key[data-note="F3"] { left: 41.66666667%; }
+.white-key[data-note="G3"] { left: 45.83333333%; }
+.white-key[data-note="A3"] { left: 50%; }
+.white-key[data-note="B3"] { left: 54.16666667%; }
+.white-key[data-note="C4"] { left: 58.33333333%; }
+.white-key[data-note="D4"] { left: 62.5%; }
+.white-key[data-note="E4"] { left: 66.66666667%; }
+.white-key[data-note="F4"] { left: 70.83333333%; }
+.white-key[data-note="G4"] { left: 75%; }
+.white-key[data-note="A4"] { left: 79.16666667%; }
+.white-key[data-note="B4"] { left: 83.33333333%; }
+.white-key[data-note="C5"] { left: 87.5%; }
+.white-key[data-note="D5"] { left: 91.66666667%; }
+.white-key[data-note="E5"] { left: 95.83333333%; }
 
 /* Posicionamiento específico para teclas negras (sostenidos) */
-.black-key[data-note="C#2"] { left: 3%; }
-.black-key[data-note="D#2"] { left: 7.5%; }
-.black-key[data-note="F#2"] { left: 15.5%; }
-.black-key[data-note="G#2"] { left: 19.5%; }
-.black-key[data-note="A#2"] { left: 23.5%; }
-.black-key[data-note="C#3"] { left: 33%; }
-.black-key[data-note="D#3"] { left: 37.5%; }
-.black-key[data-note="F#3"] { left: 45.5%; }
-.black-key[data-note="G#3"] { left: 49.5%; }
-.black-key[data-note="A#3"] { left: 53.5%; }
-.black-key[data-note="C#4"] { left: 63%; }
-.black-key[data-note="D#4"] { left: 67.5%; }
-.black-key[data-note="F#4"] { left: 75.5%; }
-.black-key[data-note="G#4"] { left: 79.5%; }
-.black-key[data-note="A#4"] { left: 83.5%; }
-.black-key[data-note="C#5"] { left: 93%; }
-.black-key[data-note="D#5"] { left: 97.5%; }
+.black-key[data-note="C#2"] { left: 2.91666667%; }
+.black-key[data-note="D#2"] { left: 7.08333333%; }
+.black-key[data-note="F#2"] { left: 14.58333333%; }
+.black-key[data-note="G#2"] { left: 18.75%; }
+.black-key[data-note="A#2"] { left: 22.91666667%; }
+.black-key[data-note="C#3"] { left: 31.25%; }
+.black-key[data-note="D#3"] { left: 35.41666667%; }
+.black-key[data-note="F#3"] { left: 43.75%; }
+.black-key[data-note="G#3"] { left: 47.91666667%; }
+.black-key[data-note="A#3"] { left: 52.08333333%; }
+.black-key[data-note="C#4"] { left: 60.41666667%; }
+.black-key[data-note="D#4"] { left: 64.58333333%; }
+.black-key[data-note="F#4"] { left: 72.91666667%; }
+.black-key[data-note="G#4"] { left: 77.08333333%; }
+.black-key[data-note="A#4"] { left: 81.25%; }
+.black-key[data-note="C#5"] { left: 89.58333333%; }
+.black-key[data-note="D#5"] { left: 93.75%; }
 
 /* Responsive adjustments */
 @media (max-width: 640px) {

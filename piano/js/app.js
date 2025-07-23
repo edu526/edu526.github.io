@@ -10,6 +10,21 @@ class PianoOptimizer {
         this.chordInfo = document.getElementById('chordInfo');
         this.loading = document.getElementById('loading');
 
+        // Audio controls
+        this.volumeSlider = document.getElementById('volumeSlider');
+        this.volumeValue = document.getElementById('volumeValue');
+        this.testAudioBtn = document.getElementById('testAudioBtn');
+        this.stopAllBtn = document.getElementById('stopAllBtn');
+        this.tempoSlider = document.getElementById('tempoSlider');
+        this.tempoValue = document.getElementById('tempoValue');
+        this.tempoDescription = document.getElementById('tempoDescription');
+
+        // Current tempo (BPM)
+        this.currentTempo = 65;
+
+        // Current progression for audio playback
+        this.currentProgression = null;
+
         this.init();
     }
 
@@ -34,6 +49,117 @@ class PianoOptimizer {
                 this.handleCalculate();
             }
         });
+
+        // Audio controls
+        this.setupAudioControls();
+    }
+
+    /**
+     * Configurar controles de audio
+     */
+    setupAudioControls() {
+        if (this.volumeSlider && this.volumeValue) {
+            this.volumeSlider.addEventListener('input', (e) => {
+                const volume = parseInt(e.target.value);
+                this.volumeValue.textContent = volume + '%';
+                if (typeof pianoAudio !== 'undefined') {
+                    pianoAudio.setMasterVolume(volume / 100);
+                }
+            });
+        }
+
+        if (this.testAudioBtn) {
+            this.testAudioBtn.addEventListener('click', () => this.testAudio());
+        }
+
+        if (this.stopAllBtn) {
+            this.stopAllBtn.addEventListener('click', () => this.stopAllAudio());
+        }
+
+        if (this.tempoSlider && this.tempoValue && this.tempoDescription) {
+            this.tempoSlider.addEventListener('input', (e) => {
+                const tempo = parseInt(e.target.value);
+                this.currentTempo = tempo;
+                this.tempoValue.textContent = tempo;
+
+                // Actualizar descripción del tempo
+                let description = '';
+                if (tempo < 60) description = 'Muy Lento (Largo)';
+                else if (tempo < 72) description = 'Lento (Adagio)';
+                else if (tempo < 84) description = 'Moderado Lento';
+                else if (tempo < 108) description = 'Moderado';
+                else description = 'Rápido (Allegro)';
+
+                this.tempoDescription.textContent = description;
+            });
+        }
+    }
+
+    /**
+     * Probar el sistema de audio
+     */
+    async testAudio() {
+        try {
+            if (typeof pianoAudio === 'undefined') {
+                alert('Sistema de audio no disponible');
+                return;
+            }
+
+            this.testAudioBtn.disabled = true;
+            this.testAudioBtn.textContent = '🎵 Reproduciendo...';
+
+            // Tocar una progresión simple para probar
+            await pianoAudio.playChord(['C4', 'E4', 'G4'], 1.5);
+
+            this.testAudioBtn.disabled = false;
+            this.testAudioBtn.textContent = '🎵 Probar Audio';
+        } catch (error) {
+            console.error('Error al probar audio:', error);
+            alert('Error al reproducir audio. Verifica que tu navegador permita audio.');
+            this.testAudioBtn.disabled = false;
+            this.testAudioBtn.textContent = '🎵 Probar Audio';
+        }
+    }
+
+    /**
+     * Calcula la duración de cada acorde basado en el tempo (BPM) respetando 4/4
+     * Cada acorde dura exactamente 4 beats (1 compás completo de 4/4)
+     * @returns {Object} Objeto con duración del acorde y pausa entre acordes
+     */
+    calculateTimingFromTempo() {
+        // Calcular duración basada en el tempo
+        // En 4/4: cada acorde dura exactamente 4 beats (1 compás completo)
+        const beatDuration = 60 / this.currentTempo; // segundos por beat
+        const chordDuration = beatDuration * 3.9; // 3.9 beats para el acorde (97.5% del compás)
+        const pauseBetween = beatDuration * 0.1; // 0.1 beats para transición suave (2.5% del compás)
+
+        const timing = {
+            chordDuration: Math.max(1.0, chordDuration), // Mínimo 1 segundo
+            pauseBetween: Math.max(0.05, pauseBetween)   // Mínimo 0.05 segundos
+        };
+
+        console.log(`Tempo: ${this.currentTempo} BPM`);
+        console.log(`Beat duration: ${beatDuration.toFixed(3)} segundos`);
+        console.log(`Chord duration: ${timing.chordDuration.toFixed(3)} segundos (${(timing.chordDuration / beatDuration).toFixed(1)} beats)`);
+        console.log(`Pause between: ${timing.pauseBetween.toFixed(3)} segundos`);
+
+        return timing;
+    }
+
+    /**
+     * Detener todo el audio
+     */
+    stopAllAudio() {
+        if (typeof pianoAudio !== 'undefined') {
+            pianoAudio.stopAll();
+        }
+
+        // Resetear el botón de reproducir progresión si existe
+        const playButton = document.getElementById('playProgressionBtn');
+        if (playButton) {
+            playButton.disabled = false;
+            playButton.textContent = '🎶 Reproducir Progresión Completa';
+        }
     }
 
     /**
@@ -126,6 +252,25 @@ class PianoOptimizer {
      */
     displayChordProgression(progression) {
         this.chordSequence.innerHTML = "";
+        this.currentProgression = progression;
+
+        // Agregar botón para reproducir toda la progresión
+        const playAllButton = document.createElement('div');
+        playAllButton.className = 'text-center mb-6';
+        playAllButton.innerHTML = `
+            <button
+                id="playProgressionBtn"
+                class="px-6 py-3 bg-purple-500 text-white rounded-xl font-semibold text-lg hover:bg-purple-600 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+                🎶 Reproducir Progresión Completa
+            </button>
+        `;
+        this.chordSequence.appendChild(playAllButton);
+
+        // Agregar event listener para el botón
+        document.getElementById('playProgressionBtn').addEventListener('click', () => {
+            this.playFullProgression();
+        });
 
         progression.forEach((item, index) => {
             const chordCard = this.createChordCard(item, index, progression);
@@ -137,6 +282,43 @@ class PianoOptimizer {
                 this.showChordInfo(item.chord, item.chordKey, item.variation, null);
             }
         });
+    }
+
+    /**
+     * Reproducir la progresión completa
+     */
+    async playFullProgression() {
+        if (!this.currentProgression || typeof pianoAudio === 'undefined') {
+            alert('No hay progresión para reproducir o el audio no está disponible');
+            return;
+        }
+
+        const button = document.getElementById('playProgressionBtn');
+        button.disabled = true;
+        button.textContent = '🎶 Reproduciendo...';
+
+        try {
+            // Calcular tiempos basados en el tempo actual
+            const timing = this.calculateTimingFromTempo();
+
+            // Convertir progresión al formato requerido por el sistema de audio
+            const audioProgression = this.currentProgression.map(item => {
+                const chordObj = chordData[item.chordKey];
+                const variationData = chordObj[item.variation];
+                return {
+                    symbol: item.chord,
+                    notes: variationData.notes
+                };
+            });
+
+            await pianoAudio.playProgression(audioProgression, timing.chordDuration, timing.pauseBetween);
+        } catch (error) {
+            console.error('Error al reproducir la progresión:', error);
+            alert('Error al reproducir la progresión');
+        } finally {
+            button.disabled = false;
+            button.textContent = '🎶 Reproducir Progresión Completa';
+        }
     }
 
     /**
@@ -194,18 +376,45 @@ class PianoOptimizer {
                 <p class="text-sm sm:text-base text-gray-600">${chordObj.description}</p>
             </div>
 
-            ${transitionInfo}
-
-            <div class="flex flex-wrap justify-center gap-3 sm:gap-4 my-6">
-                ${createNoteBadges(variationData.notes)}
+            <!-- Audio Controls for Chord -->
+            <div class="flex justify-center gap-4 my-4">
+                <button
+                    class="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
+                    onclick="playCurrentChord('${JSON.stringify(variationData.notes).replace(/"/g, '&quot;')}')"
+                >
+                    🎵 Reproducir Acorde
+                </button>
+                <button
+                    class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                    onclick="playNotesSequentially('${JSON.stringify(variationData.notes).replace(/"/g, '&quot;')}')"
+                >
+                    🎼 Reproducir Notas Secuencialmente
+                </button>
             </div>
 
-            <div class="flex flex-wrap justify-center gap-4 sm:gap-6 my-6 sm:my-8">
-                ${createFingeringBadges(variationData.fingering, variationData.notes)}
+            ${transitionInfo}
+
+            <!-- Notas del acorde con colores -->
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold text-center text-gray-700 mb-3">🎵 Notas del Acorde</h3>
+                <div class="flex flex-wrap justify-center gap-3 sm:gap-4">
+                    ${createNoteBadges(variationData.notes, variationData.fingering)}
+                </div>
+            </div>
+
+            <!-- Digitación correspondiente -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-center text-gray-700 mb-3">✋ Digitación</h3>
+                <div class="flex flex-wrap justify-center gap-4 sm:gap-6">
+                    ${createFingeringBadges(variationData.fingering, variationData.notes)}
+                </div>
             </div>
 
             ${this.createFingeringTips()}
         `;
+
+        // Store current chord for audio playback
+        this.currentChord = variationData.notes;
     }    /**
      * Crear consejos de digitación
      */
@@ -225,6 +434,41 @@ class PianoOptimizer {
                 </p>
             </div>
         `;
+    }
+}
+
+/**
+ * Función global para reproducir un acorde
+ * @param {string} notesJson - Notas del acorde en formato JSON
+ */
+async function playCurrentChord(notesJson) {
+    try {
+        const notes = JSON.parse(notesJson.replace(/&quot;/g, '"'));
+        if (typeof pianoAudio !== 'undefined') {
+            await pianoAudio.playChord(notes, 2.0);
+        }
+    } catch (error) {
+        console.error('Error al reproducir acorde:', error);
+        alert('Error al reproducir el acorde');
+    }
+}
+
+/**
+ * Función global para reproducir notas secuencialmente
+ * @param {string} notesJson - Notas en formato JSON
+ */
+async function playNotesSequentially(notesJson) {
+    try {
+        const notes = JSON.parse(notesJson.replace(/&quot;/g, '"'));
+        if (typeof pianoAudio !== 'undefined') {
+            for (let i = 0; i < notes.length; i++) {
+                await pianoAudio.playNote(notes[i], 0.8);
+                await pianoAudio.delay(400); // Pausa entre notas
+            }
+        }
+    } catch (error) {
+        console.error('Error al reproducir notas secuencialmente:', error);
+        alert('Error al reproducir las notas');
     }
 }
 

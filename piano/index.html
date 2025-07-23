@@ -72,6 +72,61 @@
                             🔄 Reiniciar
                         </button>
                     </div>
+
+                    <!-- Audio Controls -->
+                    <div class="mt-6 p-4 bg-gray-50 rounded-xl">
+                        <h3 class="text-lg font-semibold text-secondary mb-4 text-center">🔊 Controles de Audio</h3>
+                        <div class="flex flex-col gap-4">
+                            <!-- Primera fila: Volumen -->
+                            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <div class="flex items-center gap-3">
+                                    <label for="volumeSlider" class="text-sm font-medium text-gray-700">Volumen:</label>
+                                    <input
+                                        type="range"
+                                        id="volumeSlider"
+                                        min="0"
+                                        max="100"
+                                        value="30"
+                                        class="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                                    >
+                                    <span id="volumeValue" class="text-sm text-gray-600 w-8">30%</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button
+                                        id="testAudioBtn"
+                                        class="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
+                                    >
+                                        🎵 Probar Audio
+                                    </button>
+                                    <button
+                                        id="stopAllBtn"
+                                        class="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors text-sm"
+                                    >
+                                        ⏹️ Detener Todo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Segunda fila: Tempo -->
+                            <div class="flex items-center justify-center gap-4">
+                                <div class="flex items-center gap-3">
+                                    <label for="tempoSlider" class="text-sm font-medium text-gray-700">Tempo (cada acorde = 4 beats):</label>
+                                    <input
+                                        type="range"
+                                        id="tempoSlider"
+                                        min="40"
+                                        max="120"
+                                        value="65"
+                                        class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                                    >
+                                    <span id="tempoValue" class="text-sm text-gray-600 w-12 text-center">65</span>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    <span id="tempoDescription">1 acorde = 1 compás (4/4)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -127,6 +182,7 @@
     <!-- Scripts -->
     <script src="data/chords.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/audio.js"></script>
     <script src="js/piano.js"></script>
     <script src="js/app.js"></script>
 </body>
