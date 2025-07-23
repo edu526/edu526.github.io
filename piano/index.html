@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimizador de Digitaciones de Piano</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3498db',
+                        secondary: '#2c3e50',
+                        accent: '#e74c3c',
+                        light: '#ecf0f1',
+                        dark: '#34495e',
+                        success: '#2ecc71',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos personalizados específicos para el piano y elementos únicos */
+        .keyboard-container {
+            background: #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .keyboard {
+            height: 120px;
+            background: #333;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (min-width: 640px) {
+            .keyboard {
+                height: 160px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .keyboard {
+                height: 180px;
+            }
+        }
+
+        .keyboard-keys {
+            display: flex;
+            height: 100%;
+            position: relative;
+            width: 100%;
+        }
+
+        .white-key {
+            flex: 1;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 5px 5px;
+            position: relative;
+            z-index: 1;
+            height: 100%;
+        }
+
+        .black-key {
+            position: absolute;
+            width: 8px;
+            height: 65%;
+            background: #000;
+            z-index: 2;
+            border-radius: 0 0 3px 3px;
+            top: 0;
+        }
+
+        @media (min-width: 640px) {
+            .black-key {
+                width: 12px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .black-key {
+                width: 14px;
+            }
+        }
+
+        .key-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            z-index: 3;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            font-size: 0.6rem;
+        }
+
+        @media (min-width: 640px) {
+            .key-indicator {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+                bottom: 10px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .key-indicator {
+                width: 30px;
+                height: 30px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Colores específicos para cada dedo */
+        .finger-1 { background: #e74c3c; } /* Rojo para pulgar */
+        .finger-2 { background: #f39c12; } /* Naranja para índice */
+        .finger-3 { background: #2ecc71; } /* Verde para medio */
+        .finger-4 { background: #3498db; } /* Azul para anular */
+        .finger-5 { background: #9b59b6; } /* Púrpura para meñique */
+
+        .finger-badge {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.7rem;
+            margin-right: 6px;
+        }
+
+        @media (min-width: 640px) {
+            .finger-badge {
+                width: 24px;
+                height: 24px;
+                font-size: 0.8rem;
+                margin-right: 8px;
+            }
+        }
+
+        .chord-card {
+            background: #ecf0f1;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .chord-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .chord-card.active {
+            border-color: #3498db;
+            background: #d6eaf8;
+        }
+
+        .chord-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        @media (min-width: 640px) {
+            .chord-name {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .chord-name {
+                font-size: 1.4rem;
+            }
+        }
+
+        .chord-type {
+            font-size: 0.8rem;
+            color: #34495e;
+            margin-top: 4px;
+        }
+
+        @media (min-width: 640px) {
+            .chord-type {
+                font-size: 0.9rem;
+                margin-top: 5px;
+            }
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-900 via-red-800 to-indigo-900 p-4 sm:p-6 lg:p-8">
+    <div class="max-w-6xl mx-auto bg-white/92 rounded-2xl shadow-2xl overflow-hidden">
+        <header class="bg-secondary text-white p-6 sm:p-8 text-center">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-4">Optimizador de Digitaciones de Piano</h1>
+            <p class="text-sm sm:text-base lg:text-lg max-w-4xl mx-auto opacity-90">
+                Encuentra las posiciones de dedos más cercanas para progresiones de acordes usando inversiones inteligentes
+            </p>
+        </header>
+
+        <div class="p-4 sm:p-6 lg:p-8">
+            <div class="bg-light p-4 sm:p-6 lg:p-8 rounded-xl mb-6 sm:mb-8 shadow-sm">
+                <h4 class="text-secondary text-lg sm:text-xl font-semibold mb-3 sm:mb-4">¿Cómo funciona esta herramienta?</h4>
+                <p class="text-sm sm:text-base mb-4">Este optimizador analiza tu progresión de acordes y selecciona las inversiones que:</p>
+                <ul class="text-sm sm:text-base space-y-2 pl-4 sm:pl-6 list-disc">
+                    <li><strong>Mantienen consistencia:</strong> El mismo acorde siempre usa la misma inversión</li>
+                    <li><strong>Minimizan la distancia:</strong> Calcula la distancia promedio entre notas de acordes consecutivos</li>
+                    <li><strong>Optimizan transiciones:</strong> Selecciona la inversión que requiere menos movimiento de dedos</li>
+                    <li><strong>Priorizan comodidad:</strong> Evita saltos grandes e innecesarios en el teclado</li>
+                    <li><strong>Analizan contexto:</strong> Considera el acorde anterior para elegir la mejor inversión</li>
+                </ul>
+                <p class="text-xs sm:text-sm italic mt-3 sm:mt-4 text-gray-600">
+                    Nota: Los acordes repetidos mantendrán la misma inversión para consistencia musical.
+                </p>
+            </div>
+
+            <div class="bg-light p-4 sm:p-6 lg:p-8 rounded-xl mb-6 sm:mb-8 shadow-sm">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-secondary">Ingresa tu progresión de acordes</h2>
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <input
+                        type="text"
+                        id="chordInput"
+                        placeholder="Ej: C, G, Am, F, Dm, G7, C"
+                        value="F#, Bbm, Eb, C#"
+                        class="flex-1 p-3 sm:p-4 border-2 border-gray-300 rounded-lg text-base sm:text-lg focus:border-primary focus:outline-none min-w-0"
+                    >
+                    <button
+                        id="calculateBtn"
+                        class="bg-primary text-white px-6 py-3 sm:px-8 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:bg-blue-600 transform hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl whitespace-nowrap"
+                    >
+                        Calcular Digitaciones
+                    </button>
+                </div>
+                <div class="bg-white p-3 sm:p-4 lg:p-6 rounded-lg border-l-4 border-primary text-xs sm:text-sm text-dark">
+                    <p class="mb-2"><strong>Ejemplos:</strong> "C, F, G" | "Am, Dm, E, Am" | "G, Em, C, D" | "F, Bb, C7, F" | "F#, Bbm, Eb, C#" | "Cm, Fm, G#, Db"</p>
+                    <p>Los acordes pueden ser mayores (C), menores (Am), séptima (G7), con sostenidos (F#) o bemoles (Bb).</p>
+                </div>
+            </div>
+
+            <div id="loading" class="hidden text-center py-8 sm:py-12">
+                <div class="spinner"></div>
+                <p class="text-base sm:text-lg">Calculando las mejores digitaciones...</p>
+            </div>
+
+            <div id="resultsSection" class="hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 pb-4 sm:pb-6 border-b-2 border-light gap-4">
+                    <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-secondary">Resultados Optimizados</h2>
+                    <button
+                        id="resetBtn"
+                        class="bg-gray-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors duration-300 whitespace-nowrap"
+                    >
+                        Nueva Búsqueda
+                    </button>
+                </div>
+
+                <div class="space-y-6 sm:space-y-8">
+                    <div class="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm">
+                        <h3 class="text-secondary text-lg sm:text-xl lg:text-2xl font-semibold mb-4 sm:mb-6 pb-2 sm:pb-4 border-b border-gray-200">
+                            🎵 Progresión de Acordes
+                        </h3>
+                        <div id="chordSequence" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 sm:gap-4 mt-4 sm:mt-6">
+                            <!-- Chord cards will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm">
+                        <h3 class="text-secondary text-lg sm:text-xl lg:text-2xl font-semibold mb-4 sm:mb-6 pb-2 sm:pb-4 border-b border-gray-200">
+                            🎹 Piano - Acorde Seleccionado
+                        </h3>
+                        <div id="chordInfo" class="mt-4 sm:mt-6">
+                            <p class="text-sm sm:text-base text-gray-600">Selecciona un acorde en la progresión para ver detalles de digitación.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center p-4 sm:p-6 text-white bg-secondary mt-6 sm:mt-8">
+            <p class="text-xs sm:text-sm lg:text-base">Herramienta para pianistas - Optimización de digitaciones usando inversiones inteligentes</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chordInput = document.getElementById('chordInput');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const resultsSection = document.getElementById('resultsSection');
+            const chordSequence = document.getElementById('chordSequence');
+            const chordInfo = document.getElementById('chordInfo');
+            const loading = document.getElementById('loading');
+
+            // Función para normalizar notas (convertir bemoles a sostenidos)
+            function normalizeNote(note) {
+                const enharmonicMap = {
+                    'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'
+                };
+                return enharmonicMap[note] || note;
+            }
+
+            // Datos completos de acordes con notas específicas
+            const chordData = {
+                "C": {
+                    name: "C",
+                    type: "Mayor",
+                    fundamental: { notes: ["C4", "E4", "G4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["E3", "G3", "C4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["G3", "C4", "E4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Do Mayor"
+                },
+                "C#": {
+                    name: "C#",
+                    type: "Mayor",
+                    fundamental: { notes: ["C#4", "F4", "G#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["F3", "G#3", "C#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["G#3", "C#4", "F4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Do# Mayor"
+                },
+                "Db": {
+                    name: "Db",
+                    type: "Mayor",
+                    fundamental: { notes: ["C#4", "F4", "G#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["F3", "G#3", "C#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["G#3", "C#4", "F4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Reb Mayor"
+                },
+                "D": {
+                    name: "D",
+                    type: "Mayor",
+                    fundamental: { notes: ["D4", "F#4", "A4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["F#3", "A3", "D4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["A3", "D4", "F#4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Re Mayor"
+                },
+                "D#": {
+                    name: "D#",
+                    type: "Mayor",
+                    fundamental: { notes: ["D#4", "G4", "A#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["G3", "A#3", "D#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["A#3", "D#4", "G4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Re# Mayor"
+                },
+                "Eb": {
+                    name: "Eb",
+                    type: "Mayor",
+                    fundamental: { notes: ["D#4", "G4", "A#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["G3", "A#3", "D#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["A#3", "D#4", "G4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Mib Mayor"
+                },
+                "E": {
+                    name: "E",
+                    type: "Mayor",
+                    fundamental: { notes: ["E3", "G#3", "B3"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["G#3", "B3", "E4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["B3", "E4", "G#4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Mi Mayor"
+                },
+                "F": {
+                    name: "F",
+                    type: "Mayor",
+                    fundamental: { notes: ["F3", "A3", "C4"], fingering: [1, 2, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["A3", "C4", "F4"], fingering: [1, 3, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["C4", "F4", "A4"], fingering: [1, 2, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Fa Mayor"
+                },
+                "F#": {
+                    name: "F#",
+                    type: "Mayor",
+                    fundamental: { notes: ["F#3", "A#3", "C#4"], fingering: [1, 2, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["A#3", "C#4", "F#4"], fingering: [1, 3, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["C#4", "F#4", "A#4"], fingering: [1, 2, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Fa# Mayor"
+                },
+                "Gb": {
+                    name: "Gb",
+                    type: "Mayor",
+                    fundamental: { notes: ["F#3", "A#3", "C#4"], fingering: [1, 2, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["A#3", "C#4", "F#4"], fingering: [1, 3, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["C#4", "F#4", "A#4"], fingering: [1, 2, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Solb Mayor"
+                },
+                "G": {
+                    name: "G",
+                    type: "Mayor",
+                    fundamental: { notes: ["G3", "B3", "D4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["B3", "D4", "G4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["D4", "G4", "B4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Sol Mayor"
+                },
+                "G#": {
+                    name: "G#",
+                    type: "Mayor",
+                    fundamental: { notes: ["G#3", "C4", "D#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["C4", "D#4", "G#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["D#4", "G#4", "C5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Sol# Mayor"
+                },
+                "Ab": {
+                    name: "Ab",
+                    type: "Mayor",
+                    fundamental: { notes: ["G#3", "C4", "D#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["C4", "D#4", "G#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["D#4", "G#4", "C5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Lab Mayor"
+                },
+                "A": {
+                    name: "A",
+                    type: "Mayor",
+                    fundamental: { notes: ["A3", "C#4", "E4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["C#4", "E4", "A4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["E4", "A4", "C#5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de La Mayor"
+                },
+                "A#": {
+                    name: "A#",
+                    type: "Mayor",
+                    fundamental: { notes: ["A#3", "D4", "F4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["D4", "F4", "A#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["F4", "A#4", "D5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de La# Mayor"
+                },
+                "Bb": {
+                    name: "Bb",
+                    type: "Mayor",
+                    fundamental: { notes: ["A#3", "D4", "F4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["D4", "F4", "A#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["F4", "A#4", "D5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Sib Mayor"
+                },
+                "B": {
+                    name: "B",
+                    type: "Mayor",
+                    fundamental: { notes: ["B3", "D#4", "F#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["D#4", "F#4", "B4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["F#4", "B4", "D#5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Si Mayor"
+                },
+                // Acordes menores
+                "Am": {
+                    name: "Am",
+                    type: "Menor",
+                    fundamental: { notes: ["A3", "C4", "E4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["C4", "E4", "A4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["E4", "A4", "C5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de La Menor"
+                },
+                "A#m": {
+                    name: "A#m",
+                    type: "Menor",
+                    fundamental: { notes: ["A#3", "C#4", "F4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["C#4", "F4", "A#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["F4", "A#4", "C#5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de La# Menor"
+                },
+                "Bbm": {
+                    name: "Bbm",
+                    type: "Menor",
+                    fundamental: { notes: ["A#3", "C#4", "F4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["C#4", "F4", "A#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["F4", "A#4", "C#5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Sib Menor"
+                },
+                "Bm": {
+                    name: "Bm",
+                    type: "Menor",
+                    fundamental: { notes: ["B3", "D4", "F#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["D4", "F#4", "B4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["F#4", "B4", "D5"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Si Menor"
+                },
+                "Cm": {
+                    name: "Cm",
+                    type: "Menor",
+                    fundamental: { notes: ["C4", "D#4", "G4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["D#3", "G3", "C4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["G3", "C4", "D#4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Do Menor"
+                },
+                "C#m": {
+                    name: "C#m",
+                    type: "Menor",
+                    fundamental: { notes: ["C#4", "E4", "G#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["E3", "G#3", "C#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["G#3", "C#4", "E4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Do# Menor"
+                },
+                "Dm": {
+                    name: "Dm",
+                    type: "Menor",
+                    fundamental: { notes: ["D3", "F3", "A3"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["F3", "A3", "D4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["A3", "D4", "F4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Re Menor"
+                },
+                "D#m": {
+                    name: "D#m",
+                    type: "Menor",
+                    fundamental: { notes: ["D#4", "F#4", "A#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["F#3", "A#3", "D#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["A#3", "D#4", "F#4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Re# Menor"
+                },
+                "Em": {
+                    name: "Em",
+                    type: "Menor",
+                    fundamental: { notes: ["E3", "G3", "B3"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["G3", "B3", "E4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["B3", "E4", "G4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Mi Menor"
+                },
+                "Fm": {
+                    name: "Fm",
+                    type: "Menor",
+                    fundamental: { notes: ["F3", "G#3", "C4"], fingering: [1, 2, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["G#3", "C4", "F4"], fingering: [1, 3, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["C4", "F4", "G#4"], fingering: [1, 2, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Fa Menor"
+                },
+                "F#m": {
+                    name: "F#m",
+                    type: "Menor",
+                    fundamental: { notes: ["F#3", "A3", "C#4"], fingering: [1, 2, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["A3", "C#4", "F#4"], fingering: [1, 3, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["C#4", "F#4", "A4"], fingering: [1, 2, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Fa# Menor"
+                },
+                "Gm": {
+                    name: "Gm",
+                    type: "Menor",
+                    fundamental: { notes: ["G3", "A#3", "D4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["A#3", "D4", "G4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["D4", "G4", "A#4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Sol Menor"
+                },
+                "G#m": {
+                    name: "G#m",
+                    type: "Menor",
+                    fundamental: { notes: ["G#3", "B3", "D#4"], fingering: [1, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["B3", "D#4", "G#4"], fingering: [1, 2, 5], inversion: "1ª Inversión" },
+                    secondInv: { notes: ["D#4", "G#4", "B4"], fingering: [1, 3, 5], inversion: "2ª Inversión" },
+                    description: "Acorde de Sol# Menor"
+                },
+                // Acordes de séptima
+                "G7": {
+                    name: "G7",
+                    type: "Séptima",
+                    fundamental: { notes: ["G3", "B3", "D4", "F4"], fingering: [1, 2, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["B3", "D4", "F4", "G4"], fingering: [1, 2, 4, 5], inversion: "1ª Inversión" },
+                    description: "Acorde de Sol Séptima"
+                },
+                "C7": {
+                    name: "C7",
+                    type: "Séptima",
+                    fundamental: { notes: ["C4", "E4", "G4", "A#4"], fingering: [1, 2, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["E3", "G3", "A#3", "C4"], fingering: [1, 2, 4, 5], inversion: "1ª Inversión" },
+                    description: "Acorde de Do Séptima"
+                },
+                "F7": {
+                    name: "F7",
+                    type: "Séptima",
+                    fundamental: { notes: ["F3", "A3", "C4", "D#4"], fingering: [1, 2, 3, 5], inversion: "Fundamental" },
+                    firstInv: { notes: ["A3", "C4", "D#4", "F4"], fingering: [1, 2, 4, 5], inversion: "1ª Inversión" },
+                    description: "Acorde de Fa Séptima"
+                }
+            };
+
+            // Función para convertir nota a valor numérico para cálculos de distancia
+            function noteToNumber(note) {
+                const noteValues = {
+                    'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5,
+                    'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11
+                };
+                const noteName = note.replace(/[0-9]/g, '');
+                const octave = parseInt(note.match(/[0-9]/)) || 4;
+                return (octave * 12) + (noteValues[normalizeNote(noteName)] || 0);
+            }
+
+            // Función para calcular la distancia promedio entre dos acordes
+            function calculateChordDistance(chord1Notes, chord2Notes) {
+                let totalDistance = 0;
+                const minLength = Math.min(chord1Notes.length, chord2Notes.length);
+
+                for (let i = 0; i < minLength; i++) {
+                    const note1 = noteToNumber(chord1Notes[i]);
+                    const note2 = noteToNumber(chord2Notes[i]);
+                    totalDistance += Math.abs(note1 - note2);
+                }
+
+                return totalDistance / minLength;
+            }
+
+            // Función para "calcular" las mejores inversiones
+            function calculateOptimalChordProgression(chords) {
+                const progression = [];
+                const chordCache = new Map(); // Cache para mantener consistencia en acordes repetidos
+
+                for (let index = 0; index < chords.length; index++) {
+                    const chord = chords[index];
+                    // Normalizar el nombre del acorde para busqueda
+                    const normalizedChord = chord.trim();
+
+                    // Buscar el acorde en la base de datos (incluyendo equivalencias enarmónicas)
+                    let chordKey = normalizedChord;
+                    if (!chordData[chordKey]) {
+                        // Si no se encuentra, buscar equivalencias enarmónicas
+                        const alternativeNames = {
+                            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
+                            'Dbm': 'C#m', 'Ebm': 'D#m', 'Gbm': 'F#m', 'Abm': 'G#m', 'Bbm': 'A#m'
+                        };
+                        chordKey = alternativeNames[normalizedChord] || normalizedChord;
+                    }
+
+                    if (!chordData[chordKey]) {
+                        console.warn(`Acorde no encontrado: ${chord}`);
+                        continue;
+                    }
+
+                    // Si ya hemos usado este acorde antes, usar la misma inversión para consistencia
+                    if (chordCache.has(chordKey)) {
+                        const cachedVariation = chordCache.get(chordKey);
+                        progression.push({
+                            chord: normalizedChord,
+                            chordKey: chordKey,
+                            variation: cachedVariation
+                        });
+                        continue;
+                    }
+
+                    const variations = Object.keys(chordData[chordKey] || {})
+                        .filter(key => ['fundamental', 'firstInv', 'secondInv'].includes(key));
+
+                    let bestVariation = variations[0]; // Por defecto usar fundamental
+                    let minDistance = Infinity;
+
+                    // Si no es el primer acorde, optimizar la transición
+                    if (progression.length > 0) {
+                        const previousChord = progression[progression.length - 1];
+                        const previousNotes = chordData[previousChord.chordKey][previousChord.variation].notes;
+
+                        // Probar cada variación y elegir la que minimice la distancia
+                        for (const variation of variations) {
+                            const currentNotes = chordData[chordKey][variation].notes;
+                            const distance = calculateChordDistance(previousNotes, currentNotes);
+
+                            if (distance < minDistance) {
+                                minDistance = distance;
+                                bestVariation = variation;
+                            }
+                        }
+                    }
+
+                    // Guardar en cache para mantener consistencia
+                    chordCache.set(chordKey, bestVariation);
+
+                    progression.push({
+                        chord: normalizedChord,
+                        chordKey: chordKey,
+                        variation: bestVariation
+                    });
+                }
+
+                return progression;
+            }
+
+            // Función para analizar movimientos de dedos entre acordes
+            function analyzeFingerMovements(previousChord, currentChord) {
+                if (!previousChord) return null;
+
+                const prevData = chordData[previousChord.chordKey][previousChord.variation];
+                const currData = chordData[currentChord.chordKey][currentChord.variation];
+
+                const movements = [];
+                const minLength = Math.min(prevData.notes.length, currData.notes.length);
+
+                for (let i = 0; i < minLength; i++) {
+                    const prevNote = prevData.notes[i];
+                    const currNote = currData.notes[i];
+                    const finger = currData.fingering[i];
+
+                    if (prevNote !== currNote) {
+                        movements.push({
+                            finger: finger,
+                            from: prevNote,
+                            to: currNote,
+                            distance: Math.abs(noteToNumber(currNote) - noteToNumber(prevNote))
+                        });
+                    }
+                }
+
+                return movements;
+            }
+
+            // Función para crear un teclado de piano con las notas resaltadas por color de dedo
+            function createPianoKeyboard(notes, fingering) {
+                // Normalizar todas las notas a sostenidos para búsqueda consistente
+                const normalizedNotes = notes.map(note => {
+                    let noteName = note.replace(/[0-9]/g, ''); // Remover octava
+                    let octave = note.match(/[0-9]/g) ? note.match(/[0-9]/g).join('') : '4';
+                    noteName = normalizeNote(noteName);
+                    return noteName + octave;
+                });
+
+                // Crear el teclado con teclas blancas y negras extendido
+                let keyboardHTML = `
+                    <div class="keyboard-container mt-4 sm:mt-6 p-4 sm:p-6">
+                        <h4 class="text-base sm:text-lg font-semibold text-gray-700 mb-3 sm:mb-4">Teclado de Piano:</h4>
+                        <div class="keyboard p-3 sm:p-4">
+                            <div class="keyboard-keys">
+                                <!-- Teclas blancas -->
+                                <div class="white-key" data-note="C2"></div>
+                                <div class="white-key" data-note="D2"></div>
+                                <div class="white-key" data-note="E2"></div>
+                                <div class="white-key" data-note="F2"></div>
+                                <div class="white-key" data-note="G2"></div>
+                                <div class="white-key" data-note="A2"></div>
+                                <div class="white-key" data-note="B2"></div>
+                                <div class="white-key" data-note="C3"></div>
+                                <div class="white-key" data-note="D3"></div>
+                                <div class="white-key" data-note="E3"></div>
+                                <div class="white-key" data-note="F3"></div>
+                                <div class="white-key" data-note="G3"></div>
+                                <div class="white-key" data-note="A3"></div>
+                                <div class="white-key" data-note="B3"></div>
+                                <div class="white-key" data-note="C4"></div>
+                                <div class="white-key" data-note="D4"></div>
+                                <div class="white-key" data-note="E4"></div>
+                                <div class="white-key" data-note="F4"></div>
+                                <div class="white-key" data-note="G4"></div>
+                                <div class="white-key" data-note="A4"></div>
+                                <div class="white-key" data-note="B4"></div>
+                                <div class="white-key" data-note="C5"></div>
+                                <div class="white-key" data-note="D5"></div>
+                                <div class="white-key" data-note="E5"></div>
+
+                                <!-- Teclas negras -->
+                                <div class="black-key" data-note="C#2" style="left: 3.5%;"></div>
+                                <div class="black-key" data-note="D#2" style="left: 7.5%;"></div>
+                                <div class="black-key" data-note="F#2" style="left: 14.5%;"></div>
+                                <div class="black-key" data-note="G#2" style="left: 18.5%;"></div>
+                                <div class="black-key" data-note="A#2" style="left: 22.5%;"></div>
+                                <div class="black-key" data-note="C#3" style="left: 29.5%;"></div>
+                                <div class="black-key" data-note="D#3" style="left: 33.5%;"></div>
+                                <div class="black-key" data-note="F#3" style="left: 40.5%;"></div>
+                                <div class="black-key" data-note="G#3" style="left: 44.5%;"></div>
+                                <div class="black-key" data-note="A#3" style="left: 48.5%;"></div>
+                                <div class="black-key" data-note="C#4" style="left: 55.5%;"></div>
+                                <div class="black-key" data-note="D#4" style="left: 59.5%;"></div>
+                                <div class="black-key" data-note="F#4" style="left: 66.5%;"></div>
+                                <div class="black-key" data-note="G#4" style="left: 70.5%;"></div>
+                                <div class="black-key" data-note="A#4" style="left: 74.5%;"></div>
+                                <div class="black-key" data-note="C#5" style="left: 81.5%;"></div>
+                                <div class="black-key" data-note="D#5" style="left: 85.5%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Resaltar las notas del acorde con colores por dedo
+                const keyboardElement = document.createElement('div');
+                keyboardElement.innerHTML = keyboardHTML;
+
+                normalizedNotes.forEach((normalizedNote, index) => {
+                    const originalNote = notes[index];
+                    const finger = fingering[index];
+
+                    // Buscar tanto la nota original como la normalizada
+                    let keyElement = keyboardElement.querySelector(`[data-note="${originalNote}"]`) ||
+                                   keyboardElement.querySelector(`[data-note="${normalizedNote}"]`);
+
+                    if (keyElement) {
+                        const indicator = document.createElement('div');
+                        indicator.className = `key-indicator finger-${finger}`;
+                        indicator.textContent = finger;
+                        keyElement.appendChild(indicator);
+
+                        // Resaltar la tecla con un color más suave
+                        keyElement.style.backgroundColor = keyElement.classList.contains('white-key')
+                            ? '#f8f9fa'
+                            : '#495057';
+                    }
+                });
+
+                return keyboardElement.innerHTML;
+            }
+
+            // Mostrar información de acorde seleccionado
+            function showChordInfo(chord, chordKey, variation, previousChord = null) {
+                const chordObj = chordData[chordKey];
+                if (!chordObj) return;
+
+                const variationData = chordObj[variation];
+                if (!variationData) return;
+
+                // Analizar movimientos de dedos si hay acorde anterior
+                const movements = previousChord ? analyzeFingerMovements(previousChord, { chordKey, variation }) : null;
+
+                let transitionInfo = '';
+                if (movements && movements.length > 0) {
+                    const movementList = movements.map(mov => `
+                        <div class="flex items-center gap-2 sm:gap-3 py-1 sm:py-2 text-sm sm:text-base">
+                            <span class="finger-badge finger-${mov.finger}">${mov.finger}</span>
+                            <span class="font-medium">${mov.from}</span>
+                            <span class="text-gray-500 font-bold">→</span>
+                            <span class="font-medium">${mov.to}</span>
+                            <span class="text-xs sm:text-sm text-gray-500 ml-2">
+                                (${mov.distance} semitonos)
+                            </span>
+                        </div>
+                    `).join('');
+
+                    transitionInfo = `
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 sm:p-6 my-4 sm:my-6">
+                            <h5 class="text-yellow-800 font-semibold text-base sm:text-lg mb-3 sm:mb-4">🎹 Movimientos desde el acorde anterior:</h5>
+                            ${movementList}
+                            <div class="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
+                                <strong>Dedos que no se mueven:</strong> ${
+                                    [1,2,3,4,5].filter(f => !movements.some(m => m.finger === f))
+                                    .map(f => `<span class="finger-badge finger-${f} inline-flex mx-1">${f}</span>`)
+                                    .join('') || 'Ninguno'
+                                }
+                            </div>
+                        </div>
+                    `;
+                } else if (previousChord) {
+                    transitionInfo = `
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6 my-4 sm:my-6">
+                            <h5 class="text-green-800 font-semibold text-base sm:text-lg mb-2">✨ ¡Perfecto! No hay movimientos necesarios</h5>
+                            <p class="text-sm sm:text-base text-green-700">
+                                Todos los dedos permanecen en la misma posición.
+                            </p>
+                        </div>
+                    `;
+                }
+
+                chordInfo.innerHTML = `
+                    ${createPianoKeyboard(variationData.notes, variationData.fingering)}
+
+                    <div class="mt-6 mb-6">
+                        <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-secondary mb-2">${chord} ${chordObj.type} - ${variationData.inversion}</h2>
+                        <p class="text-sm sm:text-base text-gray-600">${chordObj.description}</p>
+                    </div>
+
+                    ${transitionInfo}
+
+                    <div class="flex flex-wrap justify-center gap-3 sm:gap-4 my-6">
+                        ${variationData.notes.map(note => `<div class="w-12 h-12 sm:w-14 sm:h-14 bg-primary text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base lg:text-lg shadow-md">${note}</div>`).join('')}
+                    </div>
+
+                    <div class="flex flex-wrap justify-center gap-4 sm:gap-6 my-6 sm:my-8">
+                        ${variationData.fingering.map((finger, index) => `
+                            <div class="flex flex-col items-center">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold text-sm sm:text-base text-white mb-2 sm:mb-3 finger-${finger}">${finger}</div>
+                                <div class="text-xs sm:text-sm font-medium text-gray-700">${variationData.notes[index]}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="bg-blue-50 p-4 sm:p-6 rounded-xl mt-6 border-l-4 border-primary">
+                        <h4 class="text-secondary text-lg sm:text-xl font-semibold mb-3 sm:mb-4">💡 Consejos de digitación:</h4>
+                        <ul class="space-y-2 sm:space-y-3 text-sm sm:text-base">
+                            <li class="flex items-center"><span class="finger-badge finger-1 mr-2 sm:mr-3">1</span> Pulgar: Notas graves, posición estable</li>
+                            <li class="flex items-center"><span class="finger-badge finger-2 mr-2 sm:mr-3">2</span> Índice: Notas intermedias, movimientos precisos</li>
+                            <li class="flex items-center"><span class="finger-badge finger-3 mr-2 sm:mr-3">3</span> Medio: Centro de la mano, fuerza principal</li>
+                            <li class="flex items-center"><span class="finger-badge finger-4 mr-2 sm:mr-3">4</span> Anular: Notas agudas intermedias</li>
+                            <li class="flex items-center"><span class="finger-badge finger-5 mr-2 sm:mr-3">5</span> Meñique: Notas más agudas, movimientos delicados</li>
+                        </ul>
+                        <p class="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
+                            <strong>Colores en el piano:</strong> Cada color representa un dedo diferente para facilitar la práctica.
+                        </p>
+                    </div>
+                `;
+            }
+
+            // Mostrar la progresión de acordes
+            function displayChordProgression(progression) {
+                chordSequence.innerHTML = "";
+
+                progression.forEach((item, index) => {
+                    const chordCard = document.createElement('div');
+                    chordCard.className = 'chord-card';
+                    chordCard.innerHTML = `
+                        <div class="chord-name">${item.chord}</div>
+                        <div class="chord-type">${chordData[item.chordKey][item.variation].inversion}</div>
+                    `;
+
+                    chordCard.addEventListener('click', () => {
+                        // Remover clase activa de todos los acordes
+                        document.querySelectorAll('.chord-card').forEach(card => {
+                            card.classList.remove('active');
+                        });
+
+                        // Añadir clase activa al acorde seleccionado
+                        chordCard.classList.add('active');
+
+                        // Obtener el acorde anterior para mostrar transiciones
+                        const previousChord = index > 0 ? progression[index - 1] : null;
+
+                        // Mostrar detalles del acorde con información de transición
+                        showChordInfo(item.chord, item.chordKey, item.variation, previousChord);
+                    });
+
+                    chordSequence.appendChild(chordCard);
+
+                    // Seleccionar el primer acorde automáticamente
+                    if (index === 0) {
+                        chordCard.classList.add('active');
+                        showChordInfo(item.chord, item.chordKey, item.variation, null);
+                    }
+                });
+            }
+
+            // Manejar clic en el botón Calcular
+            calculateBtn.addEventListener('click', function() {
+                const input = chordInput.value.trim();
+                if (!input) return;
+
+                // Mostrar animación de carga
+                loading.style.display = 'block';
+                resultsSection.style.display = 'none';
+
+                // Simular tiempo de procesamiento
+                setTimeout(() => {
+                    const chords = input.split(',').map(chord => chord.trim());
+
+                    // Calcular progresión óptima (en una implementación real sería más complejo)
+                    const progression = calculateOptimalChordProgression(chords);
+
+                    // Mostrar resultados
+                    displayChordProgression(progression);
+
+                    // Ocultar carga y mostrar resultados
+                    loading.style.display = 'none';
+                    resultsSection.style.display = 'block';
+                }, 1500);
+            });
+
+            // Manejar clic en el botón Reset
+            resetBtn.addEventListener('click', function() {
+                chordInput.value = '';
+                resultsSection.style.display = 'none';
+                chordInput.focus();
+            });
+
+            // Ejecutar cálculo con valores iniciales
+            setTimeout(() => {
+                calculateBtn.click();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
