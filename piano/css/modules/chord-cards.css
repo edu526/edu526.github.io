@@ -604,6 +604,7 @@
 .chord-card.active {
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    background: #f0f9ff;
 }
 
 .chord-card.error {
@@ -691,6 +692,42 @@
     margin: 0;
 }
 
+.chord-sequence-content {
+    position: relative;
+}
+
+.chord-sequence-content::before,
+.chord-sequence-content::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50px;
+    pointer-events: none;
+    z-index: 30;
+    transition: opacity 0.3s ease;
+}
+
+.chord-sequence-content::before {
+    left: 0;
+    background: linear-gradient(to right,
+        rgba(248,250,252,1) 0%,
+        rgba(248,250,252,0.95) 20%,
+        rgba(248,250,252,0.8) 50%,
+        rgba(248,250,252,0.4) 80%,
+        transparent 100%);
+}
+
+.chord-sequence-content::after {
+    right: 0;
+    background: linear-gradient(to left,
+        rgba(248,250,252,1) 0%,
+        rgba(248,250,252,0.95) 20%,
+        rgba(248,250,252,0.8) 50%,
+        rgba(248,250,252,0.4) 80%,
+        transparent 100%);
+}
+
 .chord-sequence-scroll {
     display: flex;
     overflow-x: auto;
@@ -745,27 +782,8 @@
 }
 
 /* === Indicadores de scroll para la secuencia principal === */
-.chord-sequence-scroll::before,
-.chord-sequence-scroll::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 6px; /* Espacio para scrollbar */
-    width: 20px;
-    pointer-events: none;
-    z-index: 1;
-    transition: opacity 0.3s ease;
-}
-
-.chord-sequence-scroll::before {
-    left: 0;
-    background: linear-gradient(to right, rgba(255,255,255,0.9), transparent);
-}
-
-.chord-sequence-scroll::after {
-    right: 0;
-    background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
-}
+/* Usamos sombras internas en el contenedor padre en lugar de elementos pseudo */
+/* Los gradientes están ahora en .chord-sequence-content usando box-shadow */
 
 /* === Acordes en la secuencia principal === */
 .chord-sequence-scroll .chord-card {
@@ -886,6 +904,12 @@
     .chord-sequence-scroll {
         gap: 8px;
         min-height: 100px;
+    }
+
+    /* Ajustar gradientes para mobile */
+    .chord-sequence-content::before,
+    .chord-sequence-content::after {
+        width: 30px;
     }
 }
 

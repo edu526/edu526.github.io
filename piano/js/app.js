@@ -488,7 +488,7 @@ class PianoOptimizer {
                     // Progresión terminada
                     this.setProgressionControlsState('stopped');
                 } else {
-                    this.highlightCurrentChord(chordIndex, false); // Sin auto-scroll
+                    this.highlightCurrentChord(chordIndex);
                 }
             };
 
@@ -613,9 +613,8 @@ class PianoOptimizer {
     /**
      * Resaltar el acorde que se está reproduciendo actualmente
      * @param {number} chordIndex - Índice del acorde actual (-1 para limpiar)
-     * @param {boolean} autoScroll - Si debe hacer scroll automático (por defecto false)
      */
-    highlightCurrentChord(chordIndex, autoScroll = false) {
+    highlightCurrentChord(chordIndex) {
         // Limpiar todos los resaltados anteriores (main y sticky)
         const allChordCards = document.querySelectorAll('.chord-card');
         allChordCards.forEach(card => {
@@ -642,22 +641,21 @@ class PianoOptimizer {
 
                         // Verificar si el acorde está fuera de la vista horizontal
                         if (cardRect.left < containerRect.left || cardRect.right > containerRect.right) {
-                            currentCard.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'nearest',
-                                inline: 'center'
-                            });
-                            console.log(`Auto-scroll en sección principal para acorde ${chordIndex + 1}`);
-                        }
-                    }
+                            // Scroll horizontal manual sin afectar el eje vertical
+                            const cardOffsetLeft = currentCard.offsetLeft;
+                            const containerScrollLeft = mainContainer.scrollLeft;
+                            const containerWidth = mainContainer.clientWidth;
+                            const cardWidth = currentCard.offsetWidth;
 
-                    // Solo hacer scroll vertical si está habilitado Y el elemento no es visible
-                    if (autoScroll && !this.isElementInViewport(currentCard)) {
-                        currentCard.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'nearest', // Más sutil que 'center'
-                            inline: 'nearest'
-                        });
+                            // Calcular posición de scroll para centrar el acorde
+                            const targetScrollLeft = cardOffsetLeft - (containerWidth / 2) + (cardWidth / 2);
+
+                            mainContainer.scrollTo({
+                                left: targetScrollLeft,
+                                behavior: 'smooth'
+                            });
+                            console.log(`Auto-scroll horizontal en sección principal para acorde ${chordIndex + 1}`);
+                        }
                     }
                 }
             }
@@ -676,10 +674,18 @@ class PianoOptimizer {
                         const containerRect = stickyContainer.getBoundingClientRect();
 
                         if (cardRect.left < containerRect.left || cardRect.right > containerRect.right) {
-                            stickyCard.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'nearest',
-                                inline: 'center'
+                            // Scroll horizontal manual sin afectar el eje vertical
+                            const cardOffsetLeft = stickyCard.offsetLeft;
+                            const containerScrollLeft = stickyContainer.scrollLeft;
+                            const containerWidth = stickyContainer.clientWidth;
+                            const cardWidth = stickyCard.offsetWidth;
+
+                            // Calcular posición de scroll para centrar el acorde
+                            const targetScrollLeft = cardOffsetLeft - (containerWidth / 2) + (cardWidth / 2);
+
+                            stickyContainer.scrollTo({
+                                left: targetScrollLeft,
+                                behavior: 'smooth'
                             });
                         }
                     }
@@ -708,21 +714,6 @@ class PianoOptimizer {
             this.stickyObserver.disconnect();
             this.stickyObserver = null;
         }
-    }
-
-    /**
-     * Verificar si un elemento está visible en el viewport
-     * @param {Element} element - Elemento a verificar
-     * @returns {boolean} - True si está visible
-     */
-    isElementInViewport(element) {
-        const rect = element.getBoundingClientRect();
-        return (
-            rect.top >= 0 &&
-            rect.left >= 0 &&
-            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-        );
     }
 
     /**
