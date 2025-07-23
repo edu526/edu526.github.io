@@ -1,0 +1,159 @@
+/* === MÓDULO: Piano Virtual === */
+/* Estilos para el teclado virtual del piano */
+
+.keyboard-container {
+    background: #f5f5f5;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.keyboard {
+    height: 120px;
+    background: #333;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.keyboard-keys {
+    display: block;
+    height: 100%;
+    position: relative;
+    width: 100%;
+    background: #f0f0f0;
+    border-radius: 8px;
+    padding: 10px;
+    overflow: hidden;
+}
+
+/* === Teclas del Piano === */
+.white-key {
+    position: absolute;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #ccc;
+    border-radius: 0 0 8px 8px;
+    z-index: 1;
+    height: 85%;
+    width: 4.16666667%; /* 100% / 24 teclas blancas (C2 a E5) */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.1s ease;
+}
+
+.white-key:hover {
+    background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+    transform: translateY(2px);
+}
+
+.black-key {
+    position: absolute;
+    background: linear-gradient(to bottom, #333 0%, #000 100%);
+    border: 1px solid #000;
+    border-radius: 0 0 5px 5px;
+    z-index: 2;
+    height: 55%;
+    width: 2.5%;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+    transition: all 0.1s ease;
+}
+
+.black-key:hover {
+    background: linear-gradient(to bottom, #444 0%, #111 100%);
+    transform: translateY(1px);
+}
+
+/* Estados interactivos */
+.clickable-key {
+    cursor: pointer;
+    user-select: none;
+}
+
+.clickable-key:active {
+    transform: translateY(3px) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* === Posicionamiento de Teclas Blancas === */
+.white-key[data-note="C2"] { left: 0%; }
+.white-key[data-note="D2"] { left: 4.16666667%; }
+.white-key[data-note="E2"] { left: 8.33333333%; }
+.white-key[data-note="F2"] { left: 12.5%; }
+.white-key[data-note="G2"] { left: 16.66666667%; }
+.white-key[data-note="A2"] { left: 20.83333333%; }
+.white-key[data-note="B2"] { left: 25%; }
+.white-key[data-note="C3"] { left: 29.16666667%; }
+.white-key[data-note="D3"] { left: 33.33333333%; }
+.white-key[data-note="E3"] { left: 37.5%; }
+.white-key[data-note="F3"] { left: 41.66666667%; }
+.white-key[data-note="G3"] { left: 45.83333333%; }
+.white-key[data-note="A3"] { left: 50%; }
+.white-key[data-note="B3"] { left: 54.16666667%; }
+.white-key[data-note="C4"] { left: 58.33333333%; }
+.white-key[data-note="D4"] { left: 62.5%; }
+.white-key[data-note="E4"] { left: 66.66666667%; }
+.white-key[data-note="F4"] { left: 70.83333333%; }
+.white-key[data-note="G4"] { left: 75%; }
+.white-key[data-note="A4"] { left: 79.16666667%; }
+.white-key[data-note="B4"] { left: 83.33333333%; }
+.white-key[data-note="C5"] { left: 87.5%; }
+.white-key[data-note="D5"] { left: 91.66666667%; }
+.white-key[data-note="E5"] { left: 95.83333333%; }
+
+/* === Posicionamiento de Teclas Negras === */
+.black-key[data-note="C#2"] { left: 2.91666667%; }
+.black-key[data-note="D#2"] { left: 7.08333333%; }
+.black-key[data-note="F#2"] { left: 14.58333333%; }
+.black-key[data-note="G#2"] { left: 18.75%; }
+.black-key[data-note="A#2"] { left: 22.91666667%; }
+.black-key[data-note="C#3"] { left: 31.25%; }
+.black-key[data-note="D#3"] { left: 35.41666667%; }
+.black-key[data-note="F#3"] { left: 43.75%; }
+.black-key[data-note="G#3"] { left: 47.91666667%; }
+.black-key[data-note="A#3"] { left: 52.08333333%; }
+.black-key[data-note="C#4"] { left: 60.41666667%; }
+.black-key[data-note="D#4"] { left: 64.58333333%; }
+.black-key[data-note="F#4"] { left: 72.91666667%; }
+.black-key[data-note="G#4"] { left: 77.08333333%; }
+.black-key[data-note="A#4"] { left: 81.25%; }
+.black-key[data-note="C#5"] { left: 89.58333333%; }
+.black-key[data-note="D#5"] { left: 93.75%; }
+
+/* === Responsive Design === */
+@media (min-width: 640px) {
+    .keyboard {
+        height: 160px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .keyboard {
+        height: 180px;
+    }
+
+    .white-key {
+        height: 90%;
+        border-radius: 0 0 10px 10px;
+    }
+
+    .black-key {
+        height: 60%;
+        width: 3%;
+        border-radius: 0 0 6px 6px;
+    }
+}
+
+@media (max-width: 640px) {
+    .keyboard-keys {
+        padding: 5px;
+    }
+
+    .white-key {
+        height: 80%;
+        border-radius: 0 0 4px 4px;
+    }
+
+    .black-key {
+        height: 50%;
+        width: 2%;
+        border-radius: 0 0 3px 3px;
+    }
+}

@@ -1,0 +1,367 @@
+/* === MÓDULO: Tarjetas de Acordes === */
+/* Estilos para las tarjetas informativas de acordes y progression cards */
+
+/* === Tarjetas Base === */
+.chord-card {
+    background: #ecf0f1;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    margin-bottom: 1rem;
+}
+
+.chord-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.chord-card.active {
+    border-color: #3498db;
+    background: #d6eaf8;
+}
+
+/* === Tarjetas Informativas (Alternativas) === */
+.chord-card.info-style {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    text-align: left;
+}
+
+.chord-card.info-style:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* === Estilos de Texto en Tarjetas === */
+.chord-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+@media (min-width: 640px) {
+    .chord-name {
+        font-size: 1.3rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .chord-name {
+        font-size: 1.4rem;
+    }
+}
+
+.chord-type {
+    font-size: 0.8rem;
+    color: #34495e;
+    margin-top: 4px;
+}
+
+@media (min-width: 640px) {
+    .chord-type {
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+}
+
+/* === Encabezado de Tarjeta === */
+.chord-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.chord-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.chord-card-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.25rem 0 0 0;
+}
+
+/* === Contenido de Tarjeta === */
+.chord-card-content {
+    color: #374151;
+    line-height: 1.6;
+}
+
+.chord-card-content p {
+    margin-bottom: 0.75rem;
+}
+
+.chord-card-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* === Listas en Tarjetas === */
+.chord-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.chord-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.chord-list-item:last-child {
+    border-bottom: none;
+}
+
+.chord-list .chord-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.chord-notes {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.875rem;
+    color: #6b7280;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+/* === Progression Cards === */
+.progression-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.progression-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+}
+
+.progression-card-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.progression-card-description {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.progression-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.progression-step {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.progression-step-number {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    margin-bottom: 0.25rem;
+}
+
+.progression-step-chord {
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* === Info Cards === */
+.info-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+}
+
+.info-card-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.info-card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.info-card-text {
+    font-size: 0.95rem;
+    opacity: 0.95;
+    line-height: 1.5;
+    position: relative;
+    z-index: 1;
+}
+
+/* === Cards Compactas === */
+.compact-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 0.75rem;
+}
+
+.compact-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.compact-card-icon {
+    width: 24px;
+    height: 24px;
+    color: #6366f1;
+}
+
+.compact-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.compact-card-content {
+    font-size: 0.875rem;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+/* === Estados Interactivos === */
+.chord-card.active {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.chord-card.error {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+.chord-card.success {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+/* === Responsive Design === */
+@media (min-width: 640px) {
+    .chord-card {
+        padding: 2rem;
+    }
+
+    .progression-card {
+        padding: 2.5rem;
+    }
+
+    .progression-steps {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .chord-card-title {
+        font-size: 1.375rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .progression-steps {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .chord-card-title {
+        font-size: 1.5rem;
+    }
+
+    .progression-card-title {
+        font-size: 1.75rem;
+    }
+}
+
+/* === Animaciones === */
+.chord-card.slide-in {
+    animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.progression-step.highlight {
+    animation: stepHighlight 1s ease-in-out;
+}
+
+@keyframes stepHighlight {
+    0%, 100% {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.05);
+    }
+}

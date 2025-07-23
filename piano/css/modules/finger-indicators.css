@@ -1,0 +1,181 @@
+/* === MÓDULO: Indicadores de Dedos === */
+/* Estilos para los indicadores visuales de digitación en el piano */
+
+/* === Indicadores en las Teclas === */
+.key-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    font-size: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    pointer-events: none; /* No interfiere con clicks en las teclas */
+}
+
+/* Indicadores en teclas negras (más pequeños) */
+.black-key .key-indicator {
+    bottom: 6px;
+    width: 14px;
+    height: 14px;
+    font-size: 0.55rem;
+}
+
+/* === Colores por Dedo === */
+.finger-1 {
+    background: #e74c3c; /* Rojo para pulgar */
+}
+
+.finger-2 {
+    background: #f39c12; /* Naranja para índice */
+}
+
+.finger-3 {
+    background: #2ecc71; /* Verde para medio */
+}
+
+.finger-4 {
+    background: #3498db; /* Azul para anular */
+}
+
+.finger-5 {
+    background: #9b59b6; /* Púrpura para meñique */
+}
+
+/* === Badges de Dedos === */
+.finger-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.7rem;
+    margin-right: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Estado hover para badges */
+.finger-badge:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* === Variaciones por Tamaño de Pantalla === */
+@media (min-width: 640px) {
+    .key-indicator {
+        width: 22px;
+        height: 22px;
+        font-size: 0.7rem;
+        bottom: 10px;
+    }
+
+    .black-key .key-indicator {
+        width: 16px;
+        height: 16px;
+        font-size: 0.6rem;
+        bottom: 8px;
+    }
+
+    .finger-badge {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+        margin-right: 8px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .key-indicator {
+        width: 26px;
+        height: 26px;
+        font-size: 0.8rem;
+        bottom: 12px;
+    }
+
+    .black-key .key-indicator {
+        width: 20px;
+        height: 20px;
+        font-size: 0.65rem;
+        bottom: 10px;
+    }
+
+    .finger-badge {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+        margin-right: 10px;
+    }
+}
+
+/* === Animaciones para Indicadores === */
+.key-indicator.pulse {
+    animation: fingerPulse 1s ease-in-out infinite;
+}
+
+@keyframes fingerPulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(-50%) scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+/* === Estados Especiales === */
+.key-indicator.active {
+    animation: fingerGlow 0.5s ease-in-out;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+}
+
+@keyframes fingerGlow {
+    0% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+    50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.8); }
+    100% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+}
+
+/* === Utilidades de Accesibilidad === */
+.finger-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.finger-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #4b5563;
+}
+
+@media (min-width: 640px) {
+    .finger-legend {
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .finger-legend-item {
+        font-size: 0.875rem;
+        gap: 0.5rem;
+    }
+}
