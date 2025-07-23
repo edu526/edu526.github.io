@@ -208,32 +208,26 @@
 }
 
 /* === Indicadores de scroll (sombras sutiles) === */
-.sticky-chords-container:not(.centered)::before,
-.sticky-chords-container:not(.centered)::after {
+.sticky-chords-container::before,
+.sticky-chords-container::after {
     content: '';
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 20px;
+    width: 15px;
     pointer-events: none;
     z-index: 1;
     transition: opacity 0.3s ease;
 }
 
-.sticky-chords-container:not(.centered)::before {
+.sticky-chords-container::before {
     left: 0;
-    background: linear-gradient(to right, rgba(255,255,255,0.9), transparent);
+    background: linear-gradient(to right, rgba(255,255,255,0.8), transparent);
 }
 
-.sticky-chords-container:not(.centered)::after {
+.sticky-chords-container::after {
     right: 0;
-    background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
-}
-
-/* === Centrado para progresiones cortas === */
-/* Se aplica automáticamente cuando los acordes caben sin scroll horizontal */
-.sticky-chords-container.centered {
-    justify-content: center;
+    background: linear-gradient(to left, rgba(255,255,255,0.8), transparent);
 }
 
 /* === Animación para sticky === */
