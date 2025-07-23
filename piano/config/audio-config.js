@@ -133,7 +133,20 @@ const AudioConfig = {
 
         // Configuración de audio feedback
         testNote: 'C4',
-        testDuration: 1.0
+        testDuration: 1.0,
+
+        // Configuración del sticky header
+        stickyHeader: {
+            // Porcentaje de visibilidad mínimo para mostrar sticky header
+            // Cuando la sección de acordes tiene menos de este porcentaje visible, se muestra el sticky
+            visibilityThreshold: 0.5, // 50% - cuando solo queda 30% o menos visible
+
+            // Thresholds para el IntersectionObserver
+            observerThresholds: [0, 0.1, 0.2, 0.3, 0.5, 0.7, 1.0],
+
+            // Margen del observer (para ajustes finos de detección)
+            observerRootMargin: '0px 0px 0px 0px'
+        }
     },
 
     // Funciones utilitarias
@@ -204,28 +217,28 @@ const AudioConfig = {
             const tempo = AudioConfig.ui.tempoSliderDefault;
             const volumeRange = AudioConfig.defaults.volumeRange;
             const tempoRange = AudioConfig.defaults.tempoRange;
-            
+
             // Validar que los valores estén dentro de los rangos permitidos
             const volumeValid = volumePercentage >= volumeRange.min && volumePercentage <= volumeRange.max;
             const tempoValid = tempo >= tempoRange.min && tempo <= tempoRange.max;
-            
+
             if (!volumeValid) {
                 console.warn(`Volumen fuera de rango: ${volumePercentage}% (rango: ${volumeRange.min}-${volumeRange.max}%)`);
             }
-            
+
             if (!tempoValid) {
                 console.warn(`Tempo fuera de rango: ${tempo} BPM (rango: ${tempoRange.min}-${tempoRange.max} BPM)`);
             }
-            
+
             console.log(`Configuración validada - Volumen: ${volumePercentage}%, Tempo: ${tempo} BPM`);
-            
+
             return {
                 volumeValid,
                 tempoValid,
                 allValid: volumeValid && tempoValid
             };
         },
-        
+
         /**
          * Función de conveniencia para cambiar configuraciones principales
          * @param {Object} newConfig - Objeto con nuevas configuraciones
@@ -238,14 +251,14 @@ const AudioConfig = {
                 AudioConfig.defaults.masterVolume = Math.max(0, Math.min(1, newConfig.volume));
                 console.log(`Volumen actualizado: ${oldVolume} -> ${AudioConfig.defaults.masterVolume} (UI: ${AudioConfig.ui.volumeSliderDefault}%)`);
             }
-            
+
             if (newConfig.tempo !== undefined) {
                 const oldTempo = AudioConfig.defaults.tempo;
                 const tempoRange = AudioConfig.defaults.tempoRange;
                 AudioConfig.defaults.tempo = Math.max(tempoRange.min, Math.min(tempoRange.max, newConfig.tempo));
                 console.log(`Tempo actualizado: ${oldTempo} -> ${AudioConfig.defaults.tempo} BPM`);
             }
-            
+
             // Re-validar después del cambio
             return this.validateAndSync();
         }
@@ -259,7 +272,7 @@ if (typeof window !== 'undefined') {
     setTimeout(() => {
         const validation = AudioConfig.utils.validateAndSync.call(AudioConfig);
         console.log('Validación de configuración:', validation);
-        
+
         // Ejemplo de cómo los valores están sincronizados automáticamente:
         console.log('=== Demostración de sincronización automática ===');
         console.log(`defaults.masterVolume: ${AudioConfig.defaults.masterVolume} -> ui.volumeSliderDefault: ${AudioConfig.ui.volumeSliderDefault}%`);

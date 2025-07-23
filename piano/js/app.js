@@ -380,30 +380,40 @@ class PianoOptimizer {
 
         if (!stickyHeader || !chordSequenceContainer) return;
 
-        // Detectar si estamos en móvil para ajustar el comportamiento
-        const isMobile = window.innerWidth <= 640;
-        const rootMargin = isMobile ? '-200px 0px 0px 0px' : '-100px 0px 0px 0px';
+        console.log('Configurando observer para sticky header');
 
-        console.log(`Configurando observer - Mobile: ${isMobile}, RootMargin: ${rootMargin}`);
-
-        // Observer para detectar cuando la sección de acordes sale de vista
+        // Observer para detectar cuando la sección de acordes está saliendo de vista
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                console.log(`Chord container intersecting: ${entry.isIntersecting}, Mobile: ${isMobile}`);
+                const rect = entry.boundingClientRect;
+                const isVisible = entry.isIntersecting;
+                const intersectionRatio = entry.intersectionRatio;
 
-                if (entry.isIntersecting) {
-                    // La sección de acordes está visible, ocultar sticky header
-                    stickyHeader.classList.add('hidden');
-                    console.log('Sección de acordes visible - ocultando sticky header');
-                } else {
-                    // La sección de acordes no está visible, mostrar sticky header
+                console.log(`Chord section - Intersecting: ${isVisible}, Ratio: ${intersectionRatio.toFixed(2)}, Top: ${rect.top.toFixed(1)}, Bottom: ${rect.bottom.toFixed(1)}`);
+
+                // Usar configuración centralizada para el threshold
+                const threshold = AudioConfig.ui.stickyHeader.visibilityThreshold;
+
+                // Mostrar sticky header cuando:
+                // 1. La sección está intersectando pero con poca visibilidad (ratio < threshold)
+                // 2. O cuando no está intersectando y está por arriba (top < 0)
+                // Esto crea una transición más suave
+                const shouldShowSticky = (isVisible && intersectionRatio < threshold && rect.top < 0) ||
+                                       (!isVisible && rect.top < 0);
+
+                if (shouldShowSticky) {
+                    // La sección de acordes está mayormente fuera de vista por arriba
                     stickyHeader.classList.remove('hidden');
-                    console.log('Sección de acordes fuera de vista - mostrando sticky header');
+                    console.log(`Mostrando sticky header - Ratio: ${intersectionRatio.toFixed(2)}, Threshold: ${threshold}`);
+                } else {
+                    // La sección está suficientemente visible o no se ha pasado
+                    stickyHeader.classList.add('hidden');
+                    console.log(`Ocultando sticky header - Ratio: ${intersectionRatio.toFixed(2)}, Threshold: ${threshold}`);
                 }
             });
         }, {
-            threshold: 0, // Activar cuando la sección esté completamente fuera de vista
-            rootMargin: rootMargin // Más conservador en móviles
+            threshold: AudioConfig.ui.stickyHeader.observerThresholds,
+            rootMargin: AudioConfig.ui.stickyHeader.observerRootMargin
         });
 
         observer.observe(chordSequenceContainer);
