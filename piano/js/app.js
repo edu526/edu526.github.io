@@ -145,9 +145,6 @@ class PianoOptimizer {
         // Limpiar resaltado de acordes
         this.highlightCurrentChord(-1);
 
-        // Remover indicador de progresión
-        this.removeProgressionIndicator();
-
         // Resetear los botones de control de progresión si existen
         this.setProgressionControlsState('stopped');
     }
@@ -352,21 +349,6 @@ class PianoOptimizer {
         // Insertar al inicio del body
         document.body.insertBefore(stickyContainer, document.body.firstChild);
 
-        // Detectar si necesita centrado después de insertar en DOM
-        setTimeout(() => {
-            const containerWidth = scrollContainer.offsetWidth;
-            const scrollWidth = scrollContainer.scrollWidth;
-
-            console.log(`Container width: ${containerWidth}, Scroll width: ${scrollWidth}`);
-
-            // Si el contenido cabe sin scroll, centrarlo
-            if (scrollWidth <= containerWidth + 10) { // Margen de 10px para tolerancia
-                scrollContainer.classList.add('centered');
-                console.log('Aplicando centrado automático');
-            } else {
-                console.log('Manteniendo scroll horizontal - progresión larga');
-            }
-        }, 100); // Aumentar tiempo para asegurar renderizado        // Configurar observer para mostrar/ocultar sticky header
         this.setupStickyHeaderObserver();
     }
 
@@ -465,9 +447,6 @@ class PianoOptimizer {
         // Cambiar estado de los botones
         this.setProgressionControlsState('playing');
 
-        // Crear indicador de progresión flotante
-        this.createProgressionIndicator();
-
         try {
             // Calcular tiempos basados en el tempo actual
             const timing = this.calculateTimingFromTempo();
@@ -499,7 +478,6 @@ class PianoOptimizer {
         } finally {
             // Limpiar resaltado y restaurar botones
             this.highlightCurrentChord(-1);
-            this.removeProgressionIndicator();
             this.setProgressionControlsState('stopped');
         }
     }
@@ -519,7 +497,6 @@ class PianoOptimizer {
 
         // Limpiar resaltado y restaurar botones
         this.highlightCurrentChord(-1);
-        this.removeProgressionIndicator();
         this.setProgressionControlsState('stopped');
 
         console.log('Progresión detenida');
