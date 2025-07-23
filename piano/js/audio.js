@@ -247,7 +247,7 @@ class PianoAudio {
      * @param {number} chordDuration - Duración de cada acorde en segundos
      * @param {number} pauseBetween - Pausa entre acordes en segundos
      */
-    async playProgression(chordProgression, chordDuration = AudioConfig.defaults.chordDuration, pauseBetween = AudioConfig.defaults.pauseBetweenChords) {
+    async playProgression(chordProgression, chordDuration = AudioConfig.defaults.chordDuration, pauseBetween = AudioConfig.defaults.pauseBetweenChords, onChordStart = null) {
         console.log(`Iniciando progresión: ${chordProgression.length} acordes, cada uno dura ${chordDuration.toFixed(3)}s`);
 
         // Resetear bandera de cancelación al iniciar
@@ -257,12 +257,21 @@ class PianoAudio {
             // Verificar si se ha cancelado la progresión
             if (this.isProgressionCancelled) {
                 console.log('Progresión cancelada por el usuario');
+                // Notificar que la progresión ha terminado
+                if (onChordStart) {
+                    onChordStart(-1, null); // -1 indica fin de progresión
+                }
                 return;
             }
 
             const chord = chordProgression[i];
             // Cada acorde es el primer beat (1/4) de su propio compás
             console.log(`Tocando acorde 1/4 (compás ${i + 1}): ${chord.symbol}`);
+
+            // Notificar que comienza un nuevo acorde
+            if (onChordStart) {
+                onChordStart(i, chord);
+            }
 
             // Detener todos los sonidos anteriores antes de tocar el siguiente acorde
             if (i > 0) {
@@ -273,6 +282,10 @@ class PianoAudio {
                 // Verificar cancelación después de la pausa
                 if (this.isProgressionCancelled) {
                     console.log('Progresión cancelada durante pausa');
+                    // Notificar que la progresión ha terminado
+                    if (onChordStart) {
+                        onChordStart(-1, null);
+                    }
                     return;
                 }
             }
@@ -287,6 +300,10 @@ class PianoAudio {
             } else {
                 // Es el último acorde, solo esperar su duración
                 await this.delay(chordDuration * 1000);
+                // Notificar que la progresión ha terminado
+                if (onChordStart) {
+                    onChordStart(-1, null);
+                }
             }
         }
 

@@ -23,6 +23,320 @@
     background: #d6eaf8;
 }
 
+/* === Estado de Reproducción === */
+.chord-card.playing {
+    border-color: #e74c3c;
+    background: linear-gradient(135deg, #ff7675 0%, #fd79a8 100%);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 8px 32px rgba(231, 76, 60, 0.4);
+    animation: pulse-playing 1s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.chord-card.playing::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%);
+    background-size: 20px 20px;
+    animation: stripes 1s linear infinite;
+    pointer-events: none;
+}
+
+.chord-card.playing .chord-name,
+.chord-card.playing .chord-type {
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes pulse-playing {
+    0%, 100% {
+        box-shadow: 0 8px 32px rgba(231, 76, 60, 0.4);
+    }
+    50% {
+        box-shadow: 0 12px 40px rgba(231, 76, 60, 0.6);
+    }
+}
+
+@keyframes stripes {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 20px 20px;
+    }
+}
+
+/* === Indicador de Estado === */
+.chord-card.playing::after {
+    content: '♪';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 1.2rem;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    animation: bounce-note 0.6s ease-in-out infinite alternate;
+    z-index: 2;
+}
+
+@keyframes bounce-note {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-3px);
+    }
+}
+
+/* === Indicador de Progresión Flotante === */
+.progression-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 25px;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    z-index: 1000;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+}
+
+.progression-indicator.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.progression-indicator .current-chord {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+.progression-indicator .chord-progress {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+@media (max-width: 640px) {
+    .progression-indicator {
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    .progression-indicator .current-chord {
+        font-size: 1rem;
+        margin-right: 6px;
+    }
+
+    .progression-indicator .chord-progress {
+        font-size: 0.7rem;
+    }
+}
+
+/* === Contenedor Sticky para Acordes === */
+.chord-sequence-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chord-sequence-sticky.hidden {
+    transform: translateY(-100%);
+}
+
+/* === Acordes Compactos en Sticky === */
+.chord-sequence-sticky .chord-card {
+    background: #f8f9fa;
+    padding: 6px 12px;
+    margin: 0;
+    border-radius: 6px;
+    min-width: 60px;
+    max-width: 80px;
+    text-align: center;
+    display: inline-block;
+    vertical-align: top;
+    transition: all 0.2s ease;
+    border: 1px solid #e9ecef;
+    flex-shrink: 0; /* Evitar que se compriman */
+    white-space: nowrap; /* Evitar que el texto haga wrap */
+    overflow: hidden; /* Ocultar texto que no cabe */
+}
+
+.chord-sequence-sticky .chord-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.chord-sequence-sticky .chord-card.playing {
+    background: linear-gradient(135deg, #ff7675 0%, #fd79a8 100%);
+    color: white;
+    border-color: #e74c3c;
+    transform: scale(1.1);
+    animation: pulse-sticky 0.8s ease-in-out infinite;
+}
+
+.chord-sequence-sticky .chord-card.active {
+    border-color: #3498db;
+    background: #d6eaf8;
+}
+
+.chord-sequence-sticky .chord-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.chord-sequence-sticky .chord-type {
+    font-size: 0.7rem;
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
+.chord-sequence-sticky .chord-card.playing .chord-name,
+.chord-sequence-sticky .chord-card.playing .chord-type {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* === Container con scroll horizontal === */
+.sticky-chords-container {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 4px;
+    padding: 4px 16px;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    justify-content: flex-start;
+    align-items: center;
+    white-space: nowrap; /* Prevenir wrap de acordes */
+    position: relative;
+}
+
+/* === Indicadores de scroll (sombras sutiles) === */
+.sticky-chords-container:not(.centered)::before,
+.sticky-chords-container:not(.centered)::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    pointer-events: none;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+
+.sticky-chords-container:not(.centered)::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255,255,255,0.9), transparent);
+}
+
+.sticky-chords-container:not(.centered)::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
+}
+
+/* === Centrado para progresiones cortas === */
+/* Se aplica automáticamente cuando los acordes caben sin scroll horizontal */
+.sticky-chords-container.centered {
+    justify-content: center;
+}
+
+.sticky-chords-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+/* === Animación para sticky === */
+@keyframes pulse-sticky {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.5);
+    }
+}
+
+/* === Responsive para sticky === */
+@media (max-width: 640px) {
+    .chord-sequence-sticky {
+        padding: 6px 0;
+    }
+
+    .chord-sequence-sticky .chord-card {
+        padding: 4px 8px;
+        margin: 0;
+        min-width: 50px;
+        max-width: 70px;
+        flex-shrink: 0;
+    }
+
+    .chord-sequence-sticky .chord-name {
+        font-size: 0.8rem;
+    }
+
+    .sticky-chords-container {
+        padding: 4px 12px;
+        gap: 3px;
+    }
+
+    .chord-sequence-sticky .chord-type {
+        font-size: 0.65rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .chord-sequence-sticky .chord-card {
+        padding: 8px 16px;
+        margin: 0;
+        min-width: 80px;
+        max-width: 100px;
+        flex-shrink: 0;
+    }
+
+    .chord-sequence-sticky .chord-name {
+        font-size: 1rem;
+    }
+
+    .chord-sequence-sticky .chord-type {
+        font-size: 0.75rem;
+    }
+
+    .sticky-chords-container {
+        padding: 4px 20px;
+        gap: 6px;
+    }
+}
+
 /* === Tarjetas Informativas (Alternativas) === */
 .chord-card.info-style {
     background: white;

@@ -118,7 +118,7 @@ class PianoOptimizer {
     calculateTimingFromTempo() {
         // Usar la función utilitaria de configuración para calcular duración
         const chordDuration = AudioConfig.utils.calculateChordDuration.call(AudioConfig, this.currentTempo);
-        
+
         // Calcular pausa como porcentaje del compás
         const beatDuration = 60 / this.currentTempo;
         const pauseBetween = beatDuration * 0.1; // 0.1 beats para transición suave (2.5% del compás)
@@ -141,6 +141,12 @@ class PianoOptimizer {
      */
     stopAllAudio() {
         AudioUtils.stopAllAudio();
+
+        // Limpiar resaltado de acordes
+        this.highlightCurrentChord(-1);
+
+        // Remover indicador de progresión
+        this.removeProgressionIndicator();
 
         // Resetear el botón de reproducir progresión si existe
         const playButton = document.getElementById('playProgressionBtn');
@@ -196,6 +202,9 @@ class PianoOptimizer {
         this.chordInput.value = '';
         this.hideResults();
         this.chordInput.focus();
+
+        // Limpiar sticky header
+        this.cleanupStickyHeader();
     }
 
     /**
@@ -242,6 +251,9 @@ class PianoOptimizer {
         this.chordSequence.innerHTML = "";
         this.currentProgression = progression;
 
+        // Crear y configurar sticky header de acordes
+        this.createStickyChordHeader(progression);
+
         // Agregar botón para reproducir toda la progresión
         const playAllButton = document.createElement('div');
         playAllButton.className = 'text-center mb-6';
@@ -273,6 +285,141 @@ class PianoOptimizer {
     }
 
     /**
+     * Crear sticky header con acordes compactos
+     */
+    createStickyChordHeader(progression) {
+        // Remover sticky header anterior si existe
+        const existingStickyHeader = document.getElementById('stickyChordHeader');
+        if (existingStickyHeader) {
+            existingStickyHeader.remove();
+        }
+
+        // Crear contenedor sticky
+        const stickyContainer = document.createElement('div');
+        stickyContainer.id = 'stickyChordHeader';
+        stickyContainer.className = 'chord-sequence-sticky hidden';
+
+        // Crear contenedor de scroll horizontal
+        const scrollContainer = document.createElement('div');
+        scrollContainer.className = 'sticky-chords-container';
+        scrollContainer.id = 'stickyScrollContainer';
+
+        // Crear acordes compactos
+        progression.forEach((item, index) => {
+            const compactChord = document.createElement('div');
+            compactChord.className = 'chord-card sticky-chord';
+            compactChord.dataset.chordIndex = index;
+            compactChord.innerHTML = `
+                <div class="chord-name">${item.chord}</div>
+                <div class="chord-type">${chordData[item.chordKey][item.variation].inversion}</div>
+            `;
+
+            // Event listener para acordes en sticky header
+            compactChord.addEventListener('click', () => {
+                this.selectChordFromSticky(index, item, progression);
+            });
+
+            scrollContainer.appendChild(compactChord);
+        });
+
+        stickyContainer.appendChild(scrollContainer);
+
+        // Insertar al inicio del body
+        document.body.insertBefore(stickyContainer, document.body.firstChild);
+
+        // Detectar si necesita centrado después de insertar en DOM
+        setTimeout(() => {
+            const containerWidth = scrollContainer.offsetWidth;
+            const scrollWidth = scrollContainer.scrollWidth;
+
+            console.log(`Container width: ${containerWidth}, Scroll width: ${scrollWidth}`);
+
+            // Si el contenido cabe sin scroll, centrarlo
+            if (scrollWidth <= containerWidth + 10) { // Margen de 10px para tolerancia
+                scrollContainer.classList.add('centered');
+                console.log('Aplicando centrado automático');
+            } else {
+                console.log('Manteniendo scroll horizontal - progresión larga');
+            }
+        }, 100); // Aumentar tiempo para asegurar renderizado        // Configurar observer para mostrar/ocultar sticky header
+        this.setupStickyHeaderObserver();
+    }
+
+    /**
+     * Configurar observer para el sticky header
+     */
+    setupStickyHeaderObserver() {
+        const stickyHeader = document.getElementById('stickyChordHeader');
+        // Observar específicamente el contenedor de la secuencia de acordes
+        const chordSequenceContainer = this.chordSequence.parentElement;
+
+        if (!stickyHeader || !chordSequenceContainer) return;
+
+        // Detectar si estamos en móvil para ajustar el comportamiento
+        const isMobile = window.innerWidth <= 640;
+        const rootMargin = isMobile ? '-200px 0px 0px 0px' : '-100px 0px 0px 0px';
+
+        console.log(`Configurando observer - Mobile: ${isMobile}, RootMargin: ${rootMargin}`);
+
+        // Observer para detectar cuando la sección de acordes sale de vista
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                console.log(`Chord container intersecting: ${entry.isIntersecting}, Mobile: ${isMobile}`);
+
+                if (entry.isIntersecting) {
+                    // La sección de acordes está visible, ocultar sticky header
+                    stickyHeader.classList.add('hidden');
+                    console.log('Sección de acordes visible - ocultando sticky header');
+                } else {
+                    // La sección de acordes no está visible, mostrar sticky header
+                    stickyHeader.classList.remove('hidden');
+                    console.log('Sección de acordes fuera de vista - mostrando sticky header');
+                }
+            });
+        }, {
+            threshold: 0, // Activar cuando la sección esté completamente fuera de vista
+            rootMargin: rootMargin // Más conservador en móviles
+        });
+
+        observer.observe(chordSequenceContainer);
+
+        // Guardar referencia del observer para limpieza posterior
+        this.stickyObserver = observer;
+    }
+
+    /**
+     * Seleccionar acorde desde sticky header
+     */
+    selectChordFromSticky(index, item, progression) {
+        // Actualizar selección en sticky header
+        const stickyChords = document.querySelectorAll('.sticky-chord');
+        stickyChords.forEach(chord => chord.classList.remove('active'));
+        stickyChords[index].classList.add('active');
+
+        // Actualizar selección en la lista principal
+        const mainChords = document.querySelectorAll('.chord-card:not(.sticky-chord)');
+        mainChords.forEach(chord => chord.classList.remove('active'));
+
+        // Buscar el acorde correspondiente en la lista principal (excluyendo botón)
+        const mainChordCards = Array.from(mainChords).filter(card =>
+            !card.querySelector('#playProgressionBtn')
+        );
+
+        if (index < mainChordCards.length) {
+            mainChordCards[index].classList.add('active');
+        }
+
+        // Reproducir el acorde
+        const chordObj = chordData[item.chordKey];
+        const variationData = chordObj[item.variation];
+        AudioUtils.playChordSelection(variationData);
+
+        // Mostrar información del acorde
+        const previousChord = index > 0 ? progression[index - 1] : null;
+        this.showChordInfo(item.chord, item.chordKey, item.variation, previousChord);
+    }
+
+    /**
      * Reproducir la progresión completa
      */
     async playFullProgression() {
@@ -284,6 +431,9 @@ class PianoOptimizer {
         const button = document.getElementById('playProgressionBtn');
         button.disabled = true;
         button.textContent = '🎶 Reproduciendo...';
+
+        // Crear indicador de progresión flotante
+        this.createProgressionIndicator();
 
         try {
             // Calcular tiempos basados en el tempo actual
@@ -299,14 +449,178 @@ class PianoOptimizer {
                 };
             });
 
-            await pianoAudio.playProgression(audioProgression, timing.chordDuration, timing.pauseBetween);
+            // Callback para manejar el cambio de acorde durante la reproducción
+            const onChordStart = (chordIndex, chord) => {
+                this.highlightCurrentChord(chordIndex, false); // Sin auto-scroll
+            };
+
+            await pianoAudio.playProgression(audioProgression, timing.chordDuration, timing.pauseBetween, onChordStart);
         } catch (error) {
             console.error('Error al reproducir la progresión:', error);
             alert('Error al reproducir la progresión');
         } finally {
+            // Limpiar resaltado y restaurar botón
+            this.highlightCurrentChord(-1);
+            this.removeProgressionIndicator();
             button.disabled = false;
             button.textContent = '🎶 Reproducir Progresión Completa';
         }
+    }
+
+    /**
+     * Crear indicador de progresión flotante
+     */
+    createProgressionIndicator() {
+        // Remover indicador existente si hay uno
+        this.removeProgressionIndicator();
+
+        const indicator = document.createElement('div');
+        indicator.className = 'progression-indicator';
+        indicator.id = 'progressionIndicator';
+        indicator.innerHTML = `
+            <span class="current-chord">-</span>
+            <span class="chord-progress">0/0</span>
+        `;
+
+        document.body.appendChild(indicator);
+
+        // Mostrar con animación
+        setTimeout(() => {
+            indicator.classList.add('visible');
+        }, 100);
+    }
+
+    /**
+     * Actualizar indicador de progresión flotante
+     * @param {number} chordIndex - Índice del acorde actual
+     * @param {Object} chord - Objeto del acorde actual
+     */
+    updateProgressionIndicator(chordIndex, chord) {
+        const indicator = document.getElementById('progressionIndicator');
+        if (!indicator) return;
+
+        if (chordIndex >= 0 && chord && this.currentProgression) {
+            const currentChordSpan = indicator.querySelector('.current-chord');
+            const progressSpan = indicator.querySelector('.chord-progress');
+
+            if (currentChordSpan && progressSpan) {
+                currentChordSpan.textContent = chord.symbol;
+                progressSpan.textContent = `${chordIndex + 1}/${this.currentProgression.length}`;
+            }
+        }
+    }
+
+    /**
+     * Remover indicador de progresión flotante
+     */
+    removeProgressionIndicator() {
+        const indicator = document.getElementById('progressionIndicator');
+        if (indicator) {
+            indicator.classList.remove('visible');
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }, 300);
+        }
+    }
+
+    /**
+     * Resaltar el acorde que se está reproduciendo actualmente
+     * @param {number} chordIndex - Índice del acorde actual (-1 para limpiar)
+     * @param {boolean} autoScroll - Si debe hacer scroll automático (por defecto false)
+     */
+    highlightCurrentChord(chordIndex, autoScroll = false) {
+        // Limpiar todos los resaltados anteriores (main y sticky)
+        const allChordCards = document.querySelectorAll('.chord-card');
+        allChordCards.forEach(card => {
+            card.classList.remove('playing');
+        });
+
+        // Si chordIndex es válido, resaltar el acorde actual
+        if (chordIndex >= 0) {
+            // Resaltar en la lista principal
+            const mainChordCards = Array.from(allChordCards).filter(card =>
+                !card.querySelector('#playProgressionBtn') && !card.classList.contains('sticky-chord')
+            );
+
+            if (chordIndex < mainChordCards.length) {
+                const currentCard = mainChordCards[chordIndex];
+                if (currentCard) {
+                    currentCard.classList.add('playing');
+
+                    // Solo hacer scroll si está habilitado Y el elemento no es visible
+                    if (autoScroll && !this.isElementInViewport(currentCard)) {
+                        currentCard.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'nearest', // Más sutil que 'center'
+                            inline: 'nearest'
+                        });
+                    }
+                }
+            }
+
+            // Resaltar en sticky header
+            const stickyChords = document.querySelectorAll('.sticky-chord');
+            if (chordIndex < stickyChords.length) {
+                const stickyCard = stickyChords[chordIndex];
+                if (stickyCard) {
+                    stickyCard.classList.add('playing');
+
+                    // Auto-scroll horizontal en sticky header para mantener acorde visible
+                    const stickyContainer = document.getElementById('stickyScrollContainer');
+                    if (stickyContainer) {
+                        const cardRect = stickyCard.getBoundingClientRect();
+                        const containerRect = stickyContainer.getBoundingClientRect();
+
+                        if (cardRect.left < containerRect.left || cardRect.right > containerRect.right) {
+                            stickyCard.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'nearest',
+                                inline: 'center'
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Log para debugging
+            console.log(`Resaltando acorde ${chordIndex + 1} en ambas listas`);
+        } else {
+            console.log('Limpiando resaltado de acordes');
+        }
+    }
+
+    /**
+     * Limpiar sticky header
+     */
+    cleanupStickyHeader() {
+        // Remover sticky header
+        const stickyHeader = document.getElementById('stickyChordHeader');
+        if (stickyHeader) {
+            stickyHeader.remove();
+        }
+
+        // Limpiar observer
+        if (this.stickyObserver) {
+            this.stickyObserver.disconnect();
+            this.stickyObserver = null;
+        }
+    }
+
+    /**
+     * Verificar si un elemento está visible en el viewport
+     * @param {Element} element - Elemento a verificar
+     * @returns {boolean} - True si está visible
+     */
+    isElementInViewport(element) {
+        const rect = element.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
     }
 
     /**
@@ -376,7 +690,7 @@ class PianoOptimizer {
                     `playCurrentChord('${JSON.stringify(variationData.notes).replace(/"/g, '&quot;')}')`
                 )}
                 ${UIUtils.createAudioButton(
-                    'Reproducir Notas Secuencialmente', 
+                    'Reproducir Notas Secuencialmente',
                     '🎼',
                     'bg-blue-500',
                     `playNotesSequentially('${JSON.stringify(variationData.notes).replace(/"/g, '&quot;')}')`
