@@ -20,7 +20,7 @@ class PianoOptimizer {
         this.tempoDescription = document.getElementById('tempoDescription');
 
         // Current tempo (BPM)
-        this.currentTempo = 65;
+        this.currentTempo = AudioConfig.defaults.tempo;
 
         // Current progression for audio playback
         this.currentProgression = null;
@@ -82,14 +82,8 @@ class PianoOptimizer {
                 this.currentTempo = tempo;
                 this.tempoValue.textContent = tempo;
 
-                // Actualizar descripción del tempo
-                let description = '';
-                if (tempo < 60) description = 'Muy Lento (Largo)';
-                else if (tempo < 72) description = 'Lento (Adagio)';
-                else if (tempo < 84) description = 'Moderado Lento';
-                else if (tempo < 108) description = 'Moderado';
-                else description = 'Rápido (Allegro)';
-
+                // Actualizar descripción del tempo usando configuración
+                const description = AudioConfig.utils.getTempoDescription.call(AudioConfig, tempo);
                 this.tempoDescription.textContent = description;
             });
         }
@@ -108,8 +102,8 @@ class PianoOptimizer {
             this.testAudioBtn.disabled = true;
             this.testAudioBtn.textContent = '🎵 Reproduciendo...';
 
-            // Tocar una progresión simple para probar
-            await pianoAudio.playChord(['C4', 'E4', 'G4'], 1.5);
+            // Tocar nota de prueba usando configuración
+            await pianoAudio.playNote(AudioConfig.ui.testNote, AudioConfig.ui.testDuration);
 
             this.testAudioBtn.disabled = false;
             this.testAudioBtn.textContent = '🎵 Probar Audio';
@@ -127,10 +121,11 @@ class PianoOptimizer {
      * @returns {Object} Objeto con duración del acorde y pausa entre acordes
      */
     calculateTimingFromTempo() {
-        // Calcular duración basada en el tempo
-        // En 4/4: cada acorde dura exactamente 4 beats (1 compás completo)
-        const beatDuration = 60 / this.currentTempo; // segundos por beat
-        const chordDuration = beatDuration * 3.9; // 3.9 beats para el acorde (97.5% del compás)
+        // Usar la función utilitaria de configuración para calcular duración
+        const chordDuration = AudioConfig.utils.calculateChordDuration.call(AudioConfig, this.currentTempo);
+        
+        // Calcular pausa como porcentaje del compás
+        const beatDuration = 60 / this.currentTempo;
         const pauseBetween = beatDuration * 0.1; // 0.1 beats para transición suave (2.5% del compás)
 
         const timing = {

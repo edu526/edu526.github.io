@@ -84,12 +84,9 @@
                                     <input
                                         type="range"
                                         id="volumeSlider"
-                                        min="0"
-                                        max="100"
-                                        value="30"
                                         class="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                                     >
-                                    <span id="volumeValue" class="text-sm text-gray-600 w-8">30%</span>
+                                    <span id="volumeValue" class="text-sm text-gray-600 w-8"></span>
                                 </div>
                                 <div class="flex gap-2">
                                     <button
@@ -114,15 +111,12 @@
                                     <input
                                         type="range"
                                         id="tempoSlider"
-                                        min="40"
-                                        max="120"
-                                        value="65"
                                         class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                                     >
-                                    <span id="tempoValue" class="text-sm text-gray-600 w-12 text-center">65</span>
+                                    <span id="tempoValue" class="text-sm text-gray-600 w-12 text-center"></span>
                                 </div>
                                 <div class="text-xs text-gray-500">
-                                    <span id="tempoDescription">1 acorde = 1 compás (4/4)</span>
+                                    <span id="tempoDescription"></span>
                                 </div>
                             </div>
                         </div>
@@ -180,6 +174,8 @@
     </div>
 
     <!-- Scripts -->
+    <script src="config/audio-config.js"></script>
+    <script src="js/ui-init.js"></script>
     <script src="data/chords.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/audio.js"></script>

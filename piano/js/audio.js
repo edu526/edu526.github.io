@@ -5,19 +5,14 @@ class PianoAudio {
         this.audioContext = null;
         this.isInitialized = false;
         this.currentlyPlaying = new Set();
-        this.masterVolume = 0.3;
+        this.masterVolume = AudioConfig.defaults.masterVolume;
         this.reverbNode = null;
         this.masterGainNode = null;
         this.activeOscillators = new Set();
         this.isProgressionCancelled = false; // Bandera para cancelar progresiones
 
         // Frecuencias de las notas musicales (Hz)
-        this.noteFrequencies = {
-            'C2': 65.41, 'C#2': 69.30, 'D2': 73.42, 'D#2': 77.78, 'E2': 82.41, 'F2': 87.31, 'F#2': 92.50, 'G2': 98.00, 'G#2': 103.83, 'A2': 110.00, 'A#2': 116.54, 'B2': 123.47,
-            'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56, 'E3': 164.81, 'F3': 174.61, 'F#3': 185.00, 'G3': 196.00, 'G#3': 207.65, 'A3': 220.00, 'A#3': 233.08, 'B3': 246.94,
-            'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.00, 'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
-            'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.25
-        };
+        this.noteFrequencies = AudioConfig.noteFrequencies;
     }
 
     /**
@@ -56,22 +51,23 @@ class PianoAudio {
         const dryGain = this.audioContext.createGain();
 
         // Crear impulse response sintético para reverb
-        const length = this.audioContext.sampleRate * 2; // 2 segundos
+        const reverbConfig = AudioConfig.synthesis.reverb;
+        const length = this.audioContext.sampleRate * reverbConfig.duration;
         const impulse = this.audioContext.createBuffer(2, length, this.audioContext.sampleRate);
 
         for (let channel = 0; channel < 2; channel++) {
             const channelData = impulse.getChannelData(channel);
             for (let i = 0; i < length; i++) {
                 const decay = Math.pow(1 - i / length, 2);
-                channelData[i] = (Math.random() * 2 - 1) * decay * 0.3;
+                channelData[i] = (Math.random() * 2 - 1) * decay * reverbConfig.decay;
             }
         }
 
         convolver.buffer = impulse;
 
         // Configurar mezcla dry/wet
-        dryGain.gain.setValueAtTime(0.8, this.audioContext.currentTime);
-        reverbGain.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+        dryGain.gain.setValueAtTime(reverbConfig.dryGainLevel, this.audioContext.currentTime);
+        reverbGain.gain.setValueAtTime(reverbConfig.wetGainLevel, this.audioContext.currentTime);
 
         // Crear el nodo de reverb
         this.reverbNode = this.audioContext.createGain();
@@ -91,7 +87,7 @@ class PianoAudio {
      * @param {number} duration - Duración en segundos
      * @param {number} volume - Volumen (0-1)
      */
-    async playNote(note, duration = 1.5, volume = null) {
+    async playNote(note, duration = AudioConfig.defaults.noteDuration, volume = null) {
         if (!this.isInitialized) {
             await this.initialize();
         }
@@ -117,20 +113,16 @@ class PianoAudio {
 
             // Crear filtro paso-bajo para suavizar el sonido
             const lowPassFilter = this.audioContext.createBiquadFilter();
+            const filterConfig = AudioConfig.synthesis.lowPassFilter;
             lowPassFilter.type = 'lowpass';
-            lowPassFilter.frequency.setValueAtTime(3000 + frequency * 2, this.audioContext.currentTime);
-            lowPassFilter.Q.setValueAtTime(1, this.audioContext.currentTime);
+            lowPassFilter.frequency.setValueAtTime(
+                filterConfig.baseFrequency + frequency * filterConfig.frequencyMultiplier,
+                this.audioContext.currentTime
+            );
+            lowPassFilter.Q.setValueAtTime(filterConfig.qValue, this.audioContext.currentTime);
 
             // Armónicos que simulan las cuerdas del piano
-            const harmonics = [
-                { multiplier: 1, volume: 1.0, type: 'triangle' },      // Fundamental
-                { multiplier: 2, volume: 0.4, type: 'sine' },          // Octava
-                { multiplier: 3, volume: 0.25, type: 'triangle' },     // Quinta perfecta
-                { multiplier: 4, volume: 0.15, type: 'sine' },         // Doble octava
-                { multiplier: 5, volume: 0.1, type: 'triangle' },      // Tercera mayor
-                { multiplier: 6, volume: 0.08, type: 'sine' },         // Quinta + octava
-                { multiplier: 8, volume: 0.05, type: 'triangle' }      // Triple octava
-            ];
+            const harmonics = AudioConfig.synthesis.harmonics;
 
             harmonics.forEach((harmonic, index) => {
                 const osc = this.audioContext.createOscillator();
@@ -140,7 +132,8 @@ class PianoAudio {
                 osc.frequency.setValueAtTime(frequency * harmonic.multiplier, this.audioContext.currentTime);
 
                 // Agregar ligera desafinación para naturalidad
-                const detune = (Math.random() - 0.5) * 3; // ±1.5 cents
+                const detuneConfig = AudioConfig.synthesis.detune;
+                const detune = (Math.random() - detuneConfig.factor) * detuneConfig.range;
                 osc.detune.setValueAtTime(detune, this.audioContext.currentTime);
 
                 gainNode.gain.setValueAtTime(harmonic.volume, this.audioContext.currentTime);
@@ -165,15 +158,14 @@ class PianoAudio {
             // Configurar envolvente ADSR más realista para piano
             const now = this.audioContext.currentTime;
 
-            // Parámetros ADSR adaptados según la frecuencia (graves más lentos, agudos más rápidos)
-            const baseAttackTime = frequency < 200 ? 0.02 : 0.005;  // Graves más lentos
-            const baseDecayTime = frequency < 200 ? 0.4 : 0.15;     // Graves con más sustain
-            const sustainLevel = frequency < 200 ? 0.8 : 0.6;       // Graves más resonantes
-            const baseReleaseTime = frequency < 200 ? 1.2 : 0.4;    // Graves más largos
+            // Parámetros ADSR adaptados según la frecuencia usando configuración
+            const envelopeConfig = AudioConfig.utils.getEnvelopeConfig.call(AudioConfig, frequency);
 
-            const attackTime = baseAttackTime;
-            const decayTime = baseDecayTime;
-            const releaseTime = Math.min(baseReleaseTime, duration * 0.4);
+            const attackTime = envelopeConfig.attack;
+            const decayTime = envelopeConfig.decay;
+            const sustainLevel = envelopeConfig.sustain;
+            const baseReleaseTime = envelopeConfig.release;
+            const releaseTime = Math.min(baseReleaseTime, duration * AudioConfig.envelope.maxReleaseFactor);
 
             // Envolvente principal
             masterGain.gain.setValueAtTime(0, now);
@@ -188,7 +180,7 @@ class PianoAudio {
                 const harmonicVolume = actualVolume * harmonic.volume;
 
                 // Los armónicos superiores decaen más rápido
-                const harmonicDecayMultiplier = 1 + (index * 0.3);
+                const harmonicDecayMultiplier = 1 + (index * AudioConfig.envelope.harmonicDecayMultiplier);
                 const harmonicSustainLevel = sustainLevel / harmonicDecayMultiplier;
 
                 gainNode.gain.setValueAtTime(0, now);
@@ -255,7 +247,7 @@ class PianoAudio {
      * @param {number} chordDuration - Duración de cada acorde en segundos
      * @param {number} pauseBetween - Pausa entre acordes en segundos
      */
-    async playProgression(chordProgression, chordDuration = 1.8, pauseBetween = 0.2) {
+    async playProgression(chordProgression, chordDuration = AudioConfig.defaults.chordDuration, pauseBetween = AudioConfig.defaults.pauseBetweenChords) {
         console.log(`Iniciando progresión: ${chordProgression.length} acordes, cada uno dura ${chordDuration.toFixed(3)}s`);
 
         // Resetear bandera de cancelación al iniciar
