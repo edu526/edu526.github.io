@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Precios - Sublimación</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Calculadora de Precios de Sublimación</h1>
+            <p class="subtitle">Sistema de gestión de costos y precios</p>
+        </header>
+
+        <div class="calculator-layout">
+            <!-- Stats Dashboard - Widget de estadísticas -->
+            <section class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));">
+                        📊
+                    </div>
+                    <div class="stat-info">
+                        <p class="stat-label">Cálculos Realizados</p>
+                        <p class="stat-value" id="total-calculos">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));">
+                        💰
+                    </div>
+                    <div class="stat-info">
+                        <p class="stat-label">Último Precio</p>
+                        <p class="stat-value" id="ultimo-precio">S/ 0.00</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning-color), #d97706);">
+                        📈
+                    </div>
+                    <div class="stat-info">
+                        <p class="stat-label">Última Ganancia</p>
+                        <p class="stat-value" id="ultima-ganancia">S/ 0.00</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Selector de Producto -->
+            <section class="card product-selector">
+                <h2>Selecciona el Producto</h2>
+                <div class="product-grid">
+                    <button class="product-btn" data-product="taza">
+                        <span class="icon">☕</span>
+                        <span>Taza</span>
+                    </button>
+                    <button class="product-btn" data-product="polo">
+                        <span class="icon">👕</span>
+                        <span>Polo</span>
+                    </button>
+                    <button class="product-btn" data-product="llavero">
+                        <span class="icon">🔑</span>
+                        <span>Llavero</span>
+                    </button>
+                    <button class="product-btn" data-product="tomatodo">
+                        <span class="icon">🍶</span>
+                        <span>Tomatodo</span>
+                    </button>
+                    <button class="product-btn" data-product="mousepad">
+                        <span class="icon">🖱️</span>
+                        <span>Mousepad</span>
+                    </button>
+                    <button class="product-btn" data-product="personalizado">
+                        <span class="icon">✨</span>
+                        <span>Personalizado</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Formulario de Costos -->
+            <section class="card cost-form">
+                <h2>Costos del Producto</h2>
+
+                <div class="form-group">
+                    <label for="producto-nombre">Nombre del producto:</label>
+                    <input type="text" id="producto-nombre" placeholder="Ej: Taza blanca 11oz" required>
+                </div>
+
+                <div class="form-section">
+                    <h3>Materiales</h3>
+                    <div class="form-group">
+                        <label for="costo-producto">Costo del producto base (S/):</label>
+                        <input type="number" id="costo-producto" step="0.01" min="0" placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="costo-tinta">Costo de tinta/sublimación (S/):</label>
+                        <div class="input-with-button">
+                            <input type="number" id="costo-tinta" step="0.01" min="0" placeholder="0.00">
+                            <button type="button" class="btn-calculator" id="abrir-calculadora-tinta" title="Calcular costo de tinta">
+                                🧮
+                            </button>
+                        </div>
+                        <small>Costo de tinta por unidad (usa la calculadora 🧮)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="costo-empaque">Costo de empaque/bolsa (S/):</label>
+                        <input type="number" id="costo-empaque" step="0.01" min="0" placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="otros-materiales">Otros materiales (S/):</label>
+                        <input type="number" id="otros-materiales" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Gastos Operativos</h3>
+                    <div class="form-group">
+                        <label for="mano-obra">Mano de obra (S/):</label>
+                        <input type="number" id="mano-obra" step="0.01" min="0" placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gastos-generales">Gastos generales % (luz, alquiler, etc.):</label>
+                        <input type="number" id="gastos-generales" step="0.1" min="0" max="100" value="10" placeholder="10">
+                        <small>Porcentaje sobre costos totales</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Margen de Ganancia</h3>
+                    <div class="form-group">
+                        <label for="margen-ganancia">Margen de ganancia (%):</label>
+                        <input type="number" id="margen-ganancia" step="1" min="0" max="500" value="40" placeholder="40">
+                        <small>Ganancia sobre el costo total</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Cantidad</h3>
+                    <div class="form-group">
+                        <label for="cantidad">Cantidad de productos:</label>
+                        <input type="number" id="cantidad" step="1" min="1" value="1" placeholder="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="aplicar-descuento-volumen">
+                            Aplicar descuento por volumen
+                        </label>
+                        <button type="button" class="btn-small" id="configurar-descuentos-btn" style="margin-left: 10px; display: none;">
+                            ⚙️ Configurar
+                        </button>
+                    </div>
+
+                    <div id="info-descuento" style="display: none; margin-top: 10px; padding: 10px; background: #e8f5e9; border-radius: 5px; font-size: 0.9em;">
+                        <strong>Descuento aplicado:</strong> <span id="descuento-aplicado-texto">0%</span>
+                    </div>
+                </div>
+
+                <button id="calcular-btn" class="btn-primary">Calcular Precio</button>
+                <button id="limpiar-btn" class="btn-secondary">Limpiar</button>
+            </section>
+
+            <!-- Resultados -->
+            <section class="card results-section" id="resultados" style="display: none;">
+                <h2>Resultados del Cálculo</h2>
+
+                <div class="result-item total">
+                    <span class="label">Precio de venta unitario:</span>
+                    <span class="value" id="precio-unitario">S/ 0.00</span>
+                </div>
+
+                <div class="result-item total">
+                    <span class="label">Precio total (x<span id="cantidad-display">1</span>):</span>
+                    <span class="value" id="precio-total">S/ 0.00</span>
+                </div>
+
+                <hr>
+
+                <div class="result-breakdown">
+                    <h3>Desglose de Costos Unitarios</h3>
+
+                    <div class="result-item">
+                        <span class="label">Materiales totales:</span>
+                        <span class="value" id="materiales-total">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item sub">
+                        <span class="label">• Producto base:</span>
+                        <span class="value" id="resultado-producto">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item sub">
+                        <span class="label">• Tinta/sublimación:</span>
+                        <span class="value" id="resultado-tinta">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item sub">
+                        <span class="label">• Empaque:</span>
+                        <span class="value" id="resultado-empaque">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item sub">
+                        <span class="label">• Otros materiales:</span>
+                        <span class="value" id="resultado-otros">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="label">Mano de obra:</span>
+                        <span class="value" id="resultado-mano-obra">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="label">Gastos generales (<span id="porcentaje-gg">10</span>%):</span>
+                        <span class="value" id="resultado-gastos">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item highlight">
+                        <span class="label">Costo total unitario:</span>
+                        <span class="value" id="costo-total">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item profit">
+                        <span class="label">Ganancia (<span id="porcentaje-ganancia">40</span>%):</span>
+                        <span class="value" id="resultado-ganancia">S/ 0.00</span>
+                    </div>
+                </div>
+
+                <!-- Resumen de totales por cantidad -->
+                <div id="resumen-totales" class="result-breakdown" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 3px solid var(--primary-color);">
+                    <h3>💼 Resumen Total (x<span id="cantidad-resumen">1</span> unidades)</h3>
+
+                    <div class="result-item">
+                        <span class="label">Total materiales:</span>
+                        <span class="value" id="total-materiales-cantidad">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="label">Total mano de obra:</span>
+                        <span class="value" id="total-mano-obra-cantidad">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="label">Total gastos generales:</span>
+                        <span class="value" id="total-gastos-cantidad">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item highlight">
+                        <span class="label">Costo total (todas las unidades):</span>
+                        <span class="value" id="total-costos-cantidad">S/ 0.00</span>
+                    </div>
+
+                    <div class="result-item profit">
+                        <span class="label">Ganancia total:</span>
+                        <span class="value" id="total-ganancia-cantidad">S/ 0.00</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="guardar-btn" class="btn-success">💾 Guardar Cálculo</button>
+                    <button id="compartir-btn" class="btn-info">📤 Compartir</button>
+                </div>
+            </section>
+
+            <!-- Historial -->
+            <section class="card history-section">
+                <h2>Historial de Cálculos</h2>
+                <div id="historial-lista" class="historial-lista">
+                    <p class="empty-message">No hay cálculos guardados aún</p>
+                </div>
+                <button id="limpiar-historial-btn" class="btn-secondary btn-small" style="display: none;">Limpiar Historial</button>
+            </section>
+        </div>
+
+        <footer>
+            <a href="../" class="back-link">← Volver al inicio</a>
+        </footer>
+    </div>
+
+    <!-- Modal Calculadora de Tinta -->
+    <div id="modal-calculadora-tinta" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🧮 Calculadora de Costo de Tinta</h2>
+                <button class="modal-close" id="cerrar-modal-tinta">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <p class="modal-description">
+                    Calcula el costo de tinta por unidad basándote en el precio de la botella y su rendimiento.
+                </p>
+
+                <div class="form-group">
+                    <label for="precio-botella">Precio de la botella de tinta (S/):</label>
+                    <input type="number" id="precio-botella" step="0.01" min="0" placeholder="80.00">
+                </div>
+
+                <div class="form-group">
+                    <label for="rendimiento-tinta">Rendimiento (unidades por botella):</label>
+                    <input type="number" id="rendimiento-tinta" step="1" min="1" placeholder="100">
+                    <small>¿Cuántos productos puedes hacer con una botella?</small>
+                </div>
+
+                <div class="presets-rendimiento">
+                    <p><strong>Rendimientos de referencia:</strong></p>
+                    <button type="button" class="btn-preset-rendimiento" data-rendimiento="100">
+                        Tazas (~100)
+                    </button>
+                    <button type="button" class="btn-preset-rendimiento" data-rendimiento="32">
+                        Polos full (~32)
+                    </button>
+                    <button type="button" class="btn-preset-rendimiento" data-rendimiento="150">
+                        Llaveros (~150)
+                    </button>
+                    <button type="button" class="btn-preset-rendimiento" data-rendimiento="80">
+                        Tomatodos (~80)
+                    </button>
+                </div>
+
+                <div class="resultado-tinta-modal" id="resultado-tinta-modal" style="display: none;">
+                    <h3>Resultado:</h3>
+                    <div class="resultado-valor">
+                        Costo por unidad: <strong id="costo-unitario-tinta">S/ 0.00</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-primary" id="calcular-tinta-btn">Calcular</button>
+                <button type="button" class="btn-success" id="aplicar-tinta-btn" style="display: none;">
+                    Aplicar al formulario
+                </button>
+                <button type="button" class="btn-secondary" id="cancelar-modal-tinta">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Configurar Descuentos -->
+    <div id="modal-descuentos" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📊 Configurar Descuentos por Volumen</h2>
+                <button class="modal-close" id="cerrar-modal-descuentos">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <p class="modal-description">
+                    Define los descuentos que se aplicarán según la cantidad de productos. El descuento reduce el precio de venta unitario.
+                </p>
+
+                <div class="descuentos-config">
+                    <div class="form-group">
+                        <label>De 1 a 5 unidades:</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="desc-1-5" step="0.1" min="0" max="100" value="0" placeholder="0">
+                            <span>%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>De 6 a 20 unidades:</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="desc-6-20" step="0.1" min="0" max="100" value="5" placeholder="5">
+                            <span>%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>De 21 a 50 unidades:</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="desc-21-50" step="0.1" min="0" max="100" value="10" placeholder="10">
+                            <span>%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>51 o más unidades:</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="desc-51-mas" step="0.1" min="0" max="100" value="15" placeholder="15">
+                            <span>%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #fff3cd; padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 0.9em;">
+                    <strong>💡 Ejemplo:</strong> Si vendes 10 unidades con 5% de descuento, el precio unitario se reducirá en un 5%.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-primary" id="guardar-descuentos-btn">Guardar</button>
+                <button type="button" class="btn-secondary" id="cancelar-modal-descuentos">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/calculator.js"></script>
+    <script src="js/presets.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/ink-calculator.js"></script>
+    <script src="js/bulk-discount.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
