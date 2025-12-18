@@ -512,7 +512,7 @@
             const importFileInput = document.getElementById('import-file-input');
 
             // Exportar datos
-            exportBtn.addEventListener('click', () => {
+            exportBtn.addEventListener('click', async () => {
                 try {
                     // Recopilar todos los datos de localStorage
                     const data = {
@@ -523,20 +523,46 @@
                         presets: localStorage.getItem('presets') ? JSON.parse(localStorage.getItem('presets')) : null
                     };
 
-                    // Crear blob y descargar
+                    const fecha = new Date().toISOString().split('T')[0];
+                    const fileName = `calculadora-sublimacion-${fecha}.json`;
                     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+
+                    // Verificar si el navegador soporta Web Share API con archivos
+                    if (navigator.share && navigator.canShare) {
+                        const file = new File([blob], fileName, { type: 'application/json' });
+
+                        if (navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({
+                                    title: 'Datos Calculadora Sublimación',
+                                    text: `Backup de datos - ${fecha}`,
+                                    files: [file]
+                                });
+                                console.log('✅ Datos compartidos correctamente');
+                                return;
+                            } catch (shareError) {
+                                // Si el usuario cancela, no hacer nada
+                                if (shareError.name === 'AbortError') {
+                                    console.log('Usuario canceló compartir');
+                                    return;
+                                }
+                                console.warn('Error al compartir, usando descarga:', shareError);
+                            }
+                        }
+                    }
+
+                    // Fallback: descargar archivo directamente
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    const fecha = new Date().toISOString().split('T')[0];
                     a.href = url;
-                    a.download = `calculadora-sublimacion-${fecha}.json`;
+                    a.download = fileName;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
 
                     console.log('✅ Datos exportados correctamente');
-                    alert('✅ Datos exportados exitosamente!\n\nArchivo: calculadora-sublimacion-' + fecha + '.json');
+                    alert('✅ Datos exportados exitosamente!\n\nArchivo: ' + fileName);
                 } catch (error) {
                     console.error('❌ Error al exportar datos:', error);
                     alert('❌ Error al exportar datos. Ver console para detalles.');
