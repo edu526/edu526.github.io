@@ -528,56 +528,48 @@
                     const jsonString = JSON.stringify(data, null, 2);
                     const blob = new Blob([jsonString], { type: 'application/json' });
 
-                    console.log('Intentando compartir archivo...');
-                    console.log('navigator.share:', !!navigator.share);
-                    console.log('navigator.canShare:', !!navigator.canShare);
+                    // Descargar archivo primero
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
 
-                    // Verificar si el navegador soporta Web Share API con archivos
-                    if (navigator.share) {
-                        try {
-                            const file = new File([blob], fileName, { type: 'application/json' });
+                    console.log('✅ Archivo descargado');
 
-                            console.log('Archivo creado:', fileName);
-                            console.log('Tamaño:', file.size, 'bytes');
+                    // Preguntar si quiere compartir por WhatsApp
+                    const compartir = confirm(
+                        '✅ Archivo descargado!\n\n' +
+                        '¿Deseas compartirlo por WhatsApp?\n\n' +
+                        'Se abrirá WhatsApp con el archivo listo para enviar.'
+                    );
 
-                            // Verificar si se pueden compartir archivos
-                            const canShareFiles = navigator.canShare && navigator.canShare({ files: [file] });
-                            console.log('¿Puede compartir archivos?:', canShareFiles);
+                    if (compartir) {
+                        // Crear mensaje para WhatsApp con instrucciones
+                        const mensaje = encodeURIComponent(
+                            `📊 *Backup Calculadora Sublimación*\n\n` +
+                            `Fecha: ${fecha}\n` +
+                            `📋 Historial: ${data.historial?.length || 0} registros\n` +
+                            `📊 Descuentos: ${data.descuentos?.length || 0} rangos\n\n` +
+                            `_Archivo descargado en tu dispositivo: ${fileName}_\n\n` +
+                            `Para importar: abre la app → Configuración → Importar Datos`
+                        );
 
-                            if (canShareFiles) {
-                                await navigator.share({
-                                    title: 'Datos Calculadora Sublimación',
-                                    text: `Backup de datos - ${fecha}`,
-                                    files: [file]
-                                });
-                                console.log('✅ Datos compartidos correctamente');
-                                return;
-                            } else {
-                                // Intentar compartir solo el texto con un link de datos
-                                console.log('Compartiendo como texto...');
-                                await navigator.share({
-                                    title: 'Datos Calculadora Sublimación',
-                                    text: `Backup de datos - ${fecha}\n\nDatos:\n${jsonString.substring(0, 500)}...`
-                                });
-                                console.log('✅ Compartido como texto');
-                                return;
-                            }
-                        } catch (shareError) {
-                            // Si el usuario cancela, no hacer nada
-                            if (shareError.name === 'AbortError') {
-                                console.log('Usuario canceló compartir');
-                                return;
-                            }
-                            console.warn('Error al compartir:', shareError);
-                            console.warn('Nombre del error:', shareError.name);
-                            console.warn('Mensaje:', shareError.message);
-                        }
-                    } else {
-                        console.log('Web Share API no disponible');
+                        // Abrir WhatsApp
+                        const whatsappUrl = `https://api.whatsapp.com/send?text=${mensaje}`;
+                        window.open(whatsappUrl, '_blank');
+
+                        alert(
+                            '📱 WhatsApp abierto!\n\n' +
+                            'Selecciona el contacto y envía el mensaje.\n' +
+                            'Luego adjunta el archivo descargado desde tus archivos.'
+                        );
                     }
 
-                    // Fallback: descargar archivo directamente
-                    console.log('Descargando archivo...');
+                    console.log('✅ Datos exportados correctamente');
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -588,7 +580,6 @@
                     URL.revokeObjectURL(url);
 
                     console.log('✅ Datos exportados correctamente');
-                    alert('✅ Datos exportados exitosamente!\n\nArchivo: ' + fileName);
                 } catch (error) {
                     console.error('❌ Error al exportar datos:', error);
                     alert('❌ Error al exportar datos. Ver console para detalles.');
