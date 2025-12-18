@@ -512,7 +512,8 @@
             const importFileInput = document.getElementById('import-file-input');
 
             // Exportar datos
-            exportBtn.addEventListener('click', async () => {
+            exportBtn.addEventListener('click', (e) => {
+                // IMPORTANTE: No usar async aquí para mantener el contexto del click
                 try {
                     // Recopilar todos los datos de localStorage
                     const data = {
@@ -526,57 +527,76 @@
                     const fecha = new Date().toISOString().split('T')[0];
                     const fileName = `calculadora-sublimacion-${fecha}.json`;
                     const jsonString = JSON.stringify(data, null, 2);
-                    const blob = new Blob([jsonString], { type: 'application/json' });
 
-                    // Intentar compartir con Web Share API (funciona en Android/iOS)
+                    // Intentar compartir con Web Share API (debe ser síncrono desde el click)
                     if (navigator.share) {
-                        try {
-                            const file = new File([blob], fileName, { type: 'application/json' });
+                        const blob = new Blob([jsonString], { type: 'application/json' });
+                        const file = new File([blob], fileName, { type: 'application/json' });
 
-                            // Verificar si puede compartir archivos
-                            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                                await navigator.share({
-                                    title: 'Backup Calculadora Sublimación',
-                                    text: `Backup de datos - ${fecha}\n\n📋 Historial: ${data.historial?.length || 0} registros\n📊 Descuentos: ${data.descuentos?.length || 0} rangos`,
-                                    files: [file]
-                                });
+                        console.log('🔍 Verificando soporte de compartir...');
+                        console.log('navigator.share existe:', !!navigator.share);
+                        console.log('navigator.canShare existe:', !!navigator.canShare);
+
+                        // Verificar si puede compartir archivos
+                        const puedeCompartir = navigator.canShare ? navigator.canShare({ files: [file] }) : false;
+                        console.log('¿Puede compartir archivos?:', puedeCompartir);
+
+                        if (puedeCompartir) {
+                            // Ejecutar compartir de forma síncrona
+                            navigator.share({
+                                title: 'Backup Calculadora Sublimación',
+                                text: `Backup de datos - ${fecha}\n\n📋 Historial: ${data.historial?.length || 0} registros\n📊 Descuentos: ${data.descuentos?.length || 0} rangos`,
+                                files: [file]
+                            }).then(() => {
                                 console.log('✅ Archivo compartido exitosamente');
-                                return;
-                            }
-                        } catch (shareError) {
-                            // Si cancela, no hacer nada
-                            if (shareError.name === 'AbortError') {
-                                console.log('Compartir cancelado por el usuario');
-                                return;
-                            }
-                            console.warn('No se pudo compartir:', shareError);
+                            }).catch(shareError => {
+                                if (shareError.name === 'AbortError') {
+                                    console.log('Compartir cancelado por el usuario');
+                                } else {
+                                    console.warn('Error al compartir:', shareError);
+                                    // Si falla, hacer fallback a descarga
+                                    descargarArchivo(blob, fileName);
+                                }
+                            });
+                            return;
+                        } else {
+                            console.log('Navegador no soporta compartir archivos, usando descarga');
                         }
+                    } else {
+                        console.log('Web Share API no disponible');
                     }
 
                     // Fallback: Descargar archivo
-                    const downloadUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(downloadUrl);
-
-                    console.log('✅ Archivo descargado');
-                    alert(
-                        '✅ Archivo descargado!\n\n' +
-                        `${fileName}\n\n` +
-                        '💡 Para compartir por WhatsApp:\n' +
-                        '1. Abre WhatsApp\n' +
-                        '2. Selecciona un contacto\n' +
-                        '3. Adjunta el archivo desde tus descargas'
-                    );
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    descargarArchivo(blob, fileName);
                 } catch (error) {
                     console.error('❌ Error al exportar datos:', error);
                     alert('❌ Error al exportar datos. Ver console para detalles.');
                 }
             });
+
+            // Función auxiliar para descargar archivo
+            function descargarArchivo(blob, fileName) {
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+
+                console.log('✅ Archivo descargado');
+                alert(
+                    '✅ Archivo descargado!\n\n' +
+                    `${fileName}\n\n` +
+                    '💡 Para compartir:\n' +
+                    '1. Ve a tus archivos descargados\n' +
+                    '2. Mantén presionado el archivo\n' +
+                    '3. Selecciona "Compartir"\n' +
+                    '4. Elige WhatsApp u otra app'
+                );
+            }
 
             // Abrir selector de archivo
             importBtn.addEventListener('click', () => {
