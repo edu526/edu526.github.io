@@ -1,6 +1,6 @@
 // Versión automática basada en timestamp - se actualizará en cada deploy
-const BUILD_VERSION = '__BUILD_VERSION__'; // Será reemplazado por GitHub Actions
-const VERSION = BUILD_VERSION !== '__BUILD_VERSION__' ? BUILD_VERSION : new Date().toISOString();
+const BUILD_VERSION = '20251218.033923-736eec0'; // Será reemplazado por GitHub Actions
+const VERSION = BUILD_VERSION !== '20251218.033923-736eec0' ? BUILD_VERSION : new Date().toISOString();
 const CACHE_NAME = `calculadora-sublimacion-v${VERSION}`;
 const urlsToCache = [
   '/calculadora-sublimacion/',
