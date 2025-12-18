@@ -525,14 +525,26 @@
 
                     const fecha = new Date().toISOString().split('T')[0];
                     const fileName = `calculadora-sublimacion-${fecha}.json`;
-                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const jsonString = JSON.stringify(data, null, 2);
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+
+                    console.log('Intentando compartir archivo...');
+                    console.log('navigator.share:', !!navigator.share);
+                    console.log('navigator.canShare:', !!navigator.canShare);
 
                     // Verificar si el navegador soporta Web Share API con archivos
-                    if (navigator.share && navigator.canShare) {
-                        const file = new File([blob], fileName, { type: 'application/json' });
+                    if (navigator.share) {
+                        try {
+                            const file = new File([blob], fileName, { type: 'application/json' });
 
-                        if (navigator.canShare({ files: [file] })) {
-                            try {
+                            console.log('Archivo creado:', fileName);
+                            console.log('Tamaño:', file.size, 'bytes');
+
+                            // Verificar si se pueden compartir archivos
+                            const canShareFiles = navigator.canShare && navigator.canShare({ files: [file] });
+                            console.log('¿Puede compartir archivos?:', canShareFiles);
+
+                            if (canShareFiles) {
                                 await navigator.share({
                                     title: 'Datos Calculadora Sublimación',
                                     text: `Backup de datos - ${fecha}`,
@@ -540,18 +552,32 @@
                                 });
                                 console.log('✅ Datos compartidos correctamente');
                                 return;
-                            } catch (shareError) {
-                                // Si el usuario cancela, no hacer nada
-                                if (shareError.name === 'AbortError') {
-                                    console.log('Usuario canceló compartir');
-                                    return;
-                                }
-                                console.warn('Error al compartir, usando descarga:', shareError);
+                            } else {
+                                // Intentar compartir solo el texto con un link de datos
+                                console.log('Compartiendo como texto...');
+                                await navigator.share({
+                                    title: 'Datos Calculadora Sublimación',
+                                    text: `Backup de datos - ${fecha}\n\nDatos:\n${jsonString.substring(0, 500)}...`
+                                });
+                                console.log('✅ Compartido como texto');
+                                return;
                             }
+                        } catch (shareError) {
+                            // Si el usuario cancela, no hacer nada
+                            if (shareError.name === 'AbortError') {
+                                console.log('Usuario canceló compartir');
+                                return;
+                            }
+                            console.warn('Error al compartir:', shareError);
+                            console.warn('Nombre del error:', shareError.name);
+                            console.warn('Mensaje:', shareError.message);
                         }
+                    } else {
+                        console.log('Web Share API no disponible');
                     }
 
                     // Fallback: descargar archivo directamente
+                    console.log('Descargando archivo...');
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
