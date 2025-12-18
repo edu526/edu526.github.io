@@ -25,7 +25,7 @@
                 </div>
             </div>
         </div>
-        
+
         <header>
             <h1>Calculadora de Precios de Sublimación</h1>
             <p class="subtitle">Sistema de gestión de costos y precios</p>
@@ -155,6 +155,30 @@
                                 ➕ Agregar Rango
                             </button>
                         </div>
+                    </div>
+
+                    <!-- Sección de Versión -->
+                    <div class="config-group">
+                        <h3>📱 Información de la App</h3>
+                        <div class="version-info">
+                            <div class="version-item">
+                                <span class="version-label">Versión:</span>
+                                <span class="version-value" id="app-version">Cargando...</span>
+                            </div>
+                            <div class="version-item">
+                                <span class="version-label">Última actualización:</span>
+                                <span class="version-value" id="app-last-update">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Debug Console -->
+                    <div class="config-group">
+                        <h3>🐞 Console de Debug</h3>
+                        <p class="config-description">Visualiza logs y mensajes del sistema en tiempo real</p>
+                        <button id="debug-toggle" class="btn-primary" style="width: 100%;">
+                            🐞 Abrir Console de Debug
+                        </button>
                     </div>
                 </section>
             </div>
@@ -294,12 +318,173 @@
             </div>
         </div>
     </div>
+
+    <!-- Panel de Debug Flotante -->
+    <div id="debug-panel" class="debug-panel">
+        <div class="debug-header">
+            <span class="debug-title">🐞 Console Debug</span>
+            <div class="debug-actions">
+                <button id="debug-clear" class="debug-btn" title="Limpiar">🗑️</button>
+                <button id="debug-close" class="debug-btn" title="Cerrar">✖️</button>
+            </div>
+        </div>
+        <div id="debug-content" class="debug-content"></div>
+    </div>
+
     <script src="js/calculator.js"></script>
     <script src="js/presets.js"></script>
     <script src="js/history.js"></script>
     <script src="js/bulk-discount.js"></script>
     <script src="js/app.js"></script>
     <script>
+        // ========================================
+        // DEBUG CONSOLE CON PANEL FLOTANTE
+        // ========================================
+        (function() {
+            const debugPanel = document.getElementById('debug-panel');
+            const debugContent = document.getElementById('debug-content');
+            const debugToggle = document.getElementById('debug-toggle');
+            const debugClose = document.getElementById('debug-close');
+            const debugClear = document.getElementById('debug-clear');
+            let logs = [];
+            const maxLogs = 100;
+
+            // Función para agregar log al panel
+            function addLog(type, args) {
+                const timestamp = new Date().toLocaleTimeString('es-PE', { hour12: false });
+                const message = Array.from(args).map(arg => {
+                    if (typeof arg === 'object') {
+                        try {
+                            return JSON.stringify(arg, null, 2);
+                        } catch (e) {
+                            return String(arg);
+                        }
+                    }
+                    return String(arg);
+                }).join(' ');
+
+                logs.push({ type, timestamp, message });
+                if (logs.length > maxLogs) logs.shift();
+
+                const logDiv = document.createElement('div');
+                logDiv.className = `debug-log debug-${type}`;
+                logDiv.innerHTML = `
+                    <span class="debug-time">${timestamp}</span>
+                    <span class="debug-type">[${type.toUpperCase()}]</span>
+                    <span class="debug-msg">${message}</span>
+                `;
+                debugContent.appendChild(logDiv);
+                debugContent.scrollTop = debugContent.scrollHeight;
+
+                // Limitar elementos DOM
+                while (debugContent.children.length > maxLogs) {
+                    debugContent.removeChild(debugContent.firstChild);
+                }
+            }
+
+            // Interceptar console.log
+            const originalLog = console.log;
+            console.log = function(...args) {
+                originalLog.apply(console, args);
+                addLog('log', args);
+            };
+
+            // Interceptar console.error
+            const originalError = console.error;
+            console.error = function(...args) {
+                originalError.apply(console, args);
+                addLog('error', args);
+            };
+
+            // Interceptar console.warn
+            const originalWarn = console.warn;
+            console.warn = function(...args) {
+                originalWarn.apply(console, args);
+                addLog('warn', args);
+            };
+
+            // Interceptar console.info
+            const originalInfo = console.info;
+            console.info = function(...args) {
+                originalInfo.apply(console, args);
+                addLog('info', args);
+            };
+
+            // Capturar errores no manejados
+            window.addEventListener('error', (event) => {
+                addLog('error', [`Uncaught: ${event.message} at ${event.filename}:${event.lineno}`]);
+            });
+
+            // Toggle panel desde botón en config
+            debugToggle.addEventListener('click', () => {
+                debugPanel.classList.toggle('show');
+                debugToggle.textContent = debugPanel.classList.contains('show')
+                    ? '✖️ Cerrar Console de Debug'
+                    : '🐞 Abrir Console de Debug';
+            });
+
+            // Close panel
+            debugClose.addEventListener('click', () => {
+                debugPanel.classList.remove('show');
+                debugToggle.textContent = '🐞 Abrir Console de Debug';
+            });
+
+            // Clear logs
+            debugClear.addEventListener('click', () => {
+                debugContent.innerHTML = '';
+                logs = [];
+                addLog('info', ['Console limpiada']);
+            });
+
+            // Log inicial
+            addLog('info', ['🐞 Debug Console iniciada']);
+
+            // Cargar información de versión
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
+            }
+
+            // Escuchar mensajes del Service Worker
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'VERSION_INFO') {
+                    const versionEl = document.getElementById('app-version');
+                    const lastUpdateEl = document.getElementById('app-last-update');
+
+                    if (versionEl) {
+                        versionEl.textContent = event.data.version || 'Desconocida';
+                    }
+                    if (lastUpdateEl && event.data.version) {
+                        // Extraer fecha del formato: 20251218.033923-736eec0
+                        const match = event.data.version.match(/(\d{8})\.(\d{6})/);
+                        if (match) {
+                            const date = match[1];
+                            const time = match[2];
+                            const formatted = `${date.substr(6,2)}/${date.substr(4,2)}/${date.substr(0,4)} ${time.substr(0,2)}:${time.substr(2,2)}`;
+                            lastUpdateEl.textContent = formatted;
+                        }
+                    }
+                }
+            });
+
+            // Función para obtener versión del SW
+            window.obtenerVersionSW = function() {
+                if ('serviceWorker' in navigator) {
+                    if (navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
+                        console.log('Solicitando versión al Service Worker...');
+                    } else {
+                        console.log('Service Worker aún no está controlando la página');
+                        document.getElementById('app-version').textContent = 'Cargando...';
+                    }
+                } else {
+                    document.getElementById('app-version').textContent = 'No soportado';
+                }
+            };
+
+            // Intentar obtener versión al cargar
+            obtenerVersionSW();
+        })();
+
         // Registrar Service Worker para PWA con notificación de actualización
         if ('serviceWorker' in navigator) {
             let newWorkerWaiting = null;
@@ -338,19 +523,60 @@
                 .then(reg => {
                     console.log('Service Worker registrado', reg);
 
-                    // Verificar actualizaciones cada 60 segundos
+                    // Obtener versión cuando el SW esté listo
+                    if (navigator.serviceWorker.controller) {
+                        // SW ya está activo
+                        window.obtenerVersionSW();
+                    } else {
+                        // Esperar a que el SW tome control
+                        navigator.serviceWorker.addEventListener('controllerchange', () => {
+                            console.log('Service Worker ahora tiene control, obteniendo versión...');
+                            setTimeout(() => window.obtenerVersionSW(), 500);
+                        });
+                    }
+
+                    // Función para verificar actualizaciones
+                    function checkForUpdates() {
+                        reg.update().then(() => {
+                            console.log('Verificación de actualización completada');
+                        });
+                    }
+
+                    // Verificar actualizaciones cada 60 segundos (solo si la app está visible)
                     setInterval(() => {
-                        reg.update();
+                        if (document.visibilityState === 'visible') {
+                            checkForUpdates();
+                        }
                     }, 60000);
+
+                    // ANDROID FIX: Verificar cuando la app vuelve a estar visible
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') {
+                            console.log('App visible, verificando actualizaciones...');
+                            checkForUpdates();
+                        }
+                    });
+
+                    // ANDROID FIX: Verificar cuando la ventana recibe focus
+                    window.addEventListener('focus', () => {
+                        console.log('Window focus, verificando actualizaciones...');
+                        checkForUpdates();
+                    });
+
+                    // Verificación inicial
+                    checkForUpdates();
 
                     // Detectar cuando hay una nueva versión
                     reg.addEventListener('updatefound', () => {
+                        console.log('Update found!');
                         const newWorker = reg.installing;
                         newWorkerWaiting = newWorker;
 
                         newWorker.addEventListener('statechange', () => {
+                            console.log('New worker state:', newWorker.state);
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                 // Nueva versión disponible, mostrar notificación
+                                console.log('Mostrando notificación de actualización');
                                 showUpdateNotification();
                             }
                         });
