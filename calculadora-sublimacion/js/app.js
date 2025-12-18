@@ -53,6 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inicializar selector de presets
   inicializarPresets();
 
+  // Inicializar manejo del botón atrás para modales
+  inicializarManejoBotonAtras();
+
   // Hacer accesible globalmente
   window.calculadora = calculadora;
   window.descuentosManager = descuentosManager;
@@ -329,4 +332,38 @@ function inicializarPresets() {
       }
     });
   })
+}
+
+// ========================================
+// MANEJO DEL BOTÓN ATRÁS PARA PWA - PREVENIR CIERRE
+// ========================================
+
+function inicializarManejoBotonAtras() {
+  // Agregar entrada inicial al historial para prevenir cierre
+  history.pushState({ page: 'app' }, '');
+
+  // Interceptar el evento popstate (botón atrás)
+  window.addEventListener('popstate', (event) => {
+    // Buscar si hay algún modal abierto
+    const modales = document.querySelectorAll('.modal.show');
+
+    if (modales.length > 0) {
+      // Hay modales abiertos: cerrarlos
+      modales.forEach(modal => {
+        modal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+      });
+    }
+
+    // SIEMPRE mantener una entrada en el historial para prevenir cierre de la app
+    history.pushState({ page: 'app' }, '');
+  });
+
+  // También interceptar beforeunload para PWA standalone
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    window.addEventListener('beforeunload', (event) => {
+      // Mantener la app abierta
+      history.pushState({ page: 'app' }, '');
+    });
+  }
 }

@@ -2152,10 +2152,6 @@ label {
         padding: 12px;
     }
 
-    .rango-info-label {
-        display: none;
-    }
-
     .rango-descuento-display {
         justify-self: end;
     }
