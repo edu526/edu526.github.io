@@ -172,6 +172,24 @@
                         </div>
                     </div>
 
+                    <!-- Sección de Sincronización -->
+                    <div class="config-group">
+                        <h3>🔄 Sincronización de Datos</h3>
+                        <p class="config-description">Exporta o importa todos tus datos para transferir entre dispositivos</p>
+                        <div class="sync-buttons">
+                            <button id="export-data-btn" class="btn-success" style="flex: 1;">
+                                📤 Exportar Datos
+                            </button>
+                            <button id="import-data-btn" class="btn-info" style="flex: 1;">
+                                📥 Importar Datos
+                            </button>
+                        </div>
+                        <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                        <p class="config-description" style="margin-top: 10px; font-size: 0.8em; color: var(--text-secondary);">
+                            💡 Exporta tus datos como archivo JSON y compártelo entre dispositivos
+                        </p>
+                    </div>
+
                     <!-- Sección de Debug Console -->
                     <div class="config-group">
                         <h3>🐞 Console de Debug</h3>
@@ -483,6 +501,106 @@
 
             // Intentar obtener versión al cargar
             obtenerVersionSW();
+        })();
+
+        // ========================================
+        // EXPORT/IMPORT DE DATOS
+        // ========================================
+        (function() {
+            const exportBtn = document.getElementById('export-data-btn');
+            const importBtn = document.getElementById('import-data-btn');
+            const importFileInput = document.getElementById('import-file-input');
+
+            // Exportar datos
+            exportBtn.addEventListener('click', () => {
+                try {
+                    // Recopilar todos los datos de localStorage
+                    const data = {
+                        version: '1.0',
+                        exportDate: new Date().toISOString(),
+                        historial: JSON.parse(localStorage.getItem('historialCalculos') || '[]'),
+                        descuentos: JSON.parse(localStorage.getItem('descuentosPorCantidad') || '[]'),
+                        presets: localStorage.getItem('presets') ? JSON.parse(localStorage.getItem('presets')) : null
+                    };
+
+                    // Crear blob y descargar
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const fecha = new Date().toISOString().split('T')[0];
+                    a.href = url;
+                    a.download = `calculadora-sublimacion-${fecha}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    console.log('✅ Datos exportados correctamente');
+                    alert('✅ Datos exportados exitosamente!\n\nArchivo: calculadora-sublimacion-' + fecha + '.json');
+                } catch (error) {
+                    console.error('❌ Error al exportar datos:', error);
+                    alert('❌ Error al exportar datos. Ver console para detalles.');
+                }
+            });
+
+            // Abrir selector de archivo
+            importBtn.addEventListener('click', () => {
+                importFileInput.click();
+            });
+
+            // Importar datos
+            importFileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+
+                        // Validar estructura
+                        if (!data.version || !data.exportDate) {
+                            throw new Error('Archivo inválido: formato no reconocido');
+                        }
+
+                        // Preguntar al usuario si desea sobrescribir o combinar
+                        const mensaje = `📥 Importar datos exportados el ${new Date(data.exportDate).toLocaleString('es-PE')}?\n\n` +
+                            `📋 Historial: ${data.historial?.length || 0} registros\n` +
+                            `📊 Descuentos: ${data.descuentos?.length || 0} rangos\n\n` +
+                            `⚠️ ATENCIÓN: Esto SOBRESCRIBIRÁ tus datos actuales.\n\n` +
+                            `¿Deseas continuar?`;
+
+                        if (!confirm(mensaje)) {
+                            console.log('Importación cancelada por el usuario');
+                            importFileInput.value = '';
+                            return;
+                        }
+
+                        // Importar datos
+                        if (data.historial) {
+                            localStorage.setItem('historialCalculos', JSON.stringify(data.historial));
+                        }
+                        if (data.descuentos) {
+                            localStorage.setItem('descuentosPorCantidad', JSON.stringify(data.descuentos));
+                        }
+                        if (data.presets) {
+                            localStorage.setItem('presets', JSON.stringify(data.presets));
+                        }
+
+                        console.log('✅ Datos importados correctamente');
+                        alert('✅ Datos importados exitosamente!\n\n🔄 Recargando aplicación...');
+
+                        // Recargar página para aplicar cambios
+                        window.location.reload();
+                    } catch (error) {
+                        console.error('❌ Error al importar datos:', error);
+                        alert('❌ Error al importar datos:\n\n' + error.message);
+                    } finally {
+                        importFileInput.value = '';
+                    }
+                };
+                reader.readAsText(file);
+            });
         })();
 
         // Registrar Service Worker para PWA con notificación de actualización
