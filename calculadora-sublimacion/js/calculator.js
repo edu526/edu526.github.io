@@ -130,8 +130,13 @@ class CalculadoraSublimacion {
     }
 
     // Mostrar resultados en la interfaz
-    mostrarResultados(resultados) {
-        // Mostrar sección de resultados
+    mostrarResultados(resultados, enModal = true) {
+        if (enModal) {
+            this.mostrarResultadosEnModal(resultados);
+            return;
+        }
+
+        // Mostrar sección de resultados (versión antigua)
         document.getElementById('resultados').style.display = 'block';
 
         // Mostrar info de descuento si aplica
@@ -196,6 +201,83 @@ class CalculadoraSublimacion {
         }
     }
 
+    // Mostrar resultados en modal
+    mostrarResultadosEnModal(resultados, titulo = null) {
+        // Título personalizado o por defecto
+        const tituloModal = titulo || `💰 ${resultados.nombreProducto || 'Resultado'}`;
+        document.getElementById('modal-resultado-titulo').textContent = tituloModal;
+
+        // Info de descuento
+        const infoDescuento = document.getElementById('info-descuento-modal');
+        if (resultados.descuentoVolumen > 0) {
+            infoDescuento.style.display = 'block';
+            document.getElementById('descuento-aplicado-texto-modal').textContent =
+                `Descuento ${resultados.descuentoVolumen}% (${resultados.cantidad} unidades)`;
+        } else {
+            infoDescuento.style.display = 'none';
+        }
+
+        // Precio de venta
+        document.getElementById('precio-unitario-modal').textContent = this.formatearMoneda(resultados.precioUnitario);
+        document.getElementById('precio-total-modal').textContent = this.formatearMoneda(resultados.precioTotal);
+        document.getElementById('cantidad-display-modal').textContent = resultados.cantidad;
+
+        // Mostrar/ocultar precio total solo si cantidad > 1
+        const precioTotalRow = document.getElementById('precio-total-row-modal');
+        if (resultados.cantidad > 1) {
+            precioTotalRow.style.display = 'table-row';
+        } else {
+            precioTotalRow.style.display = 'none';
+        }
+
+        // Desglose de materiales (valores ocultos para cálculos)
+        document.getElementById('materiales-total-modal').textContent = this.formatearMoneda(resultados.materiales.total);
+        document.getElementById('resultado-producto-modal').value = resultados.materiales.producto;
+        document.getElementById('resultado-tinta-modal').value = resultados.materiales.tinta;
+        document.getElementById('resultado-empaque-modal').value = resultados.materiales.empaque;
+        document.getElementById('resultado-otros-modal').value = resultados.materiales.otros;
+
+        // Otros costos
+        document.getElementById('resultado-mano-obra-modal').textContent = this.formatearMoneda(resultados.manoObra);
+        document.getElementById('resultado-gastos-modal').textContent = this.formatearMoneda(resultados.gastosGenerales);
+        document.getElementById('porcentaje-gg-modal').textContent = resultados.porcentajeGG;
+
+        // Costo total y ganancia
+        document.getElementById('costo-total-modal').textContent = this.formatearMoneda(resultados.costoTotal);
+
+        // Mostrar ganancia con o sin descuento
+        if (resultados.descuentoVolumen > 0) {
+            document.getElementById('resultado-ganancia-modal').textContent = this.formatearMoneda(resultados.gananciaReal);
+            document.getElementById('porcentaje-ganancia-modal').textContent =
+                `${resultados.porcentajeGanancia}% → ${resultados.porcentajeGananciaReal.toFixed(1)}%`;
+        } else {
+            document.getElementById('resultado-ganancia-modal').textContent = this.formatearMoneda(resultados.ganancia);
+            document.getElementById('porcentaje-ganancia-modal').textContent = resultados.porcentajeGanancia;
+        }
+
+        // Valores ocultos para totales (si se necesitan después)
+        document.getElementById('cantidad-resumen-modal').value = resultados.cantidad;
+        if (resultados.cantidad > 1) {
+            document.getElementById('total-materiales-cantidad-modal').value = resultados.materiales.total * resultados.cantidad;
+            document.getElementById('total-mano-obra-cantidad-modal').value = resultados.manoObra * resultados.cantidad;
+            document.getElementById('total-gastos-cantidad-modal').value = resultados.gastosGenerales * resultados.cantidad;
+            document.getElementById('total-costos-cantidad-modal').value = resultados.costoTotal * resultados.cantidad;
+            document.getElementById('total-ganancia-cantidad-modal').value = resultados.ganancia * resultados.cantidad;
+        }
+
+        // Mostrar u ocultar botones según contexto (ocultar si viene del historial)
+        const accionesDiv = document.getElementById('modal-resultado-acciones');
+        if (titulo && titulo.includes('Detalle')) {
+            accionesDiv.style.display = 'none';
+        } else {
+            accionesDiv.style.display = 'flex';
+        }
+
+        // Abrir modal
+        document.getElementById('modal-resultados').classList.add('show');
+        document.body.classList.add('modal-open');
+    }
+
     // Limpiar formulario
     limpiarFormulario() {
         document.getElementById('producto-nombre').value = '';
@@ -213,12 +295,15 @@ class CalculadoraSublimacion {
         document.getElementById('configurar-descuentos-btn').style.display = 'none';
 
         // Limpiar productos activos
-        document.querySelectorAll('.product-btn').forEach(btn => {
+        document.querySelectorAll('.product-btn, .preset-icon-btn').forEach(btn => {
             btn.classList.remove('active');
         });
 
-        // Ocultar resultados
-        document.getElementById('resultados').style.display = 'none';
+        // Cerrar modal de resultados si está abierto
+        const modalResultados = document.getElementById('modal-resultados');
+        if (modalResultados && modalResultados.classList.contains('show')) {
+            modalResultados.classList.remove('show');
+        }
     }
 
     // Cargar datos desde objeto

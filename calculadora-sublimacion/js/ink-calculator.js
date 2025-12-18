@@ -67,7 +67,7 @@ class CalculadoraTinta {
     abrirModal() {
         this.modal.classList.add('show');
         document.getElementById('precio-botella').focus();
-        
+
         // Limpiar valores anteriores
         document.getElementById('resultado-tinta-modal').style.display = 'none';
         document.getElementById('aplicar-tinta-btn').style.display = 'none';
@@ -101,9 +101,9 @@ class CalculadoraTinta {
         this.costoCalculado = precioBotella / rendimiento;
 
         // Mostrar resultado
-        document.getElementById('costo-unitario-tinta').textContent = 
+        document.getElementById('costo-unitario-tinta').textContent =
             'S/ ' + this.costoCalculado.toFixed(2);
-        
+
         document.getElementById('resultado-tinta-modal').style.display = 'block';
         document.getElementById('aplicar-tinta-btn').style.display = 'inline-block';
 
@@ -121,8 +121,8 @@ class CalculadoraTinta {
         this.cerrarModal();
         this.mostrarNotificacion('✓ Costo de tinta aplicado');
 
-        // Si ya hay resultados mostrados, recalcular
-        if (document.getElementById('resultados').style.display !== 'none') {
+        // Si el modal de resultados está abierto, recalcular
+        if (document.getElementById('modal-resultados').classList.contains('show')) {
             realizarCalculo();
         }
     }
@@ -139,7 +139,7 @@ class CalculadoraTinta {
     // Mostrar error
     mostrarError(mensaje) {
         let errorDiv = document.getElementById('error-tinta-modal');
-        
+
         if (!errorDiv) {
             errorDiv = document.createElement('div');
             errorDiv.id = 'error-tinta-modal';
@@ -171,7 +171,7 @@ class CalculadoraTinta {
     // Mostrar notificación
     mostrarNotificacion(mensaje) {
         let notif = document.getElementById('notif-tinta');
-        
+
         if (!notif) {
             notif = document.createElement('div');
             notif.id = 'notif-tinta';

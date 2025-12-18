@@ -54,7 +54,8 @@ class HistorialManager {
 
         // Actualizar estadísticas del dashboard si existe la función
         if (typeof actualizarEstadisticas === 'function') {
-            actualizarEstadisticas();
+            // Actualizar estadísticas (DESHABILITADO)
+            // actualizarEstadisticas();
         }
     }
 
@@ -95,40 +96,98 @@ class HistorialManager {
         }
     }
 
+    // Ver detalle de un cálculo en modal
+    verDetalle(id, calculadora) {
+        const calculo = this.historial.find(item => item.id === id);
+
+        if (calculo) {
+            calculadora.cargarDatos(calculo);
+            const resultados = calculadora.calcular();
+            const titulo = `📋 Detalle: ${calculo.nombreProducto || 'Cálculo'}`;
+            calculadora.mostrarResultadosEnModal(resultados, titulo);
+        }
+    }
+
     // Renderizar lista de historial
     renderizarHistorial() {
         const contenedor = document.getElementById('historial-lista');
-        const btnLimpiar = document.getElementById('limpiar-historial-btn');
 
         if (this.historial.length === 0) {
             contenedor.innerHTML = '<p class="empty-message">No hay cálculos guardados aún</p>';
-            btnLimpiar.style.display = 'none';
             return;
         }
 
-        btnLimpiar.style.display = 'block';
-
         contenedor.innerHTML = this.historial.map(item => `
-            <div class="historial-item">
-                <h4>${item.nombreProducto}${item.cantidad > 1 ? ` (x${item.cantidad} unidades)` : ''}</h4>
-                <div class="fecha">📅 ${item.fechaGuardado}</div>
-                <div class="precio-historial">
-                    <div><strong>Precio unitario:</strong> S/ ${item.precioUnitario.toFixed(2)}</div>
-                    ${item.cantidad > 1 ? `<div style="margin-top: 5px;"><strong>Precio total (x${item.cantidad}):</strong> S/ ${item.precioTotal.toFixed(2)}</div>` : ''}
-                    <div style="margin-top: 8px; font-size: 0.85em; color: #7f8c8d;">
-                        Costo unitario: S/ ${item.costoTotal.toFixed(2)} | Ganancia: S/ ${item.ganancia.toFixed(2)} (${item.porcentajeGanancia}%)
+            <div class="historial-item" data-id="${item.id}">
+                <div class="historial-item-content">
+                    <div class="historial-item-info">
+                        <h4>${item.nombreProducto}${item.cantidad > 1 ? ` x${item.cantidad}` : ''}</h4>
                     </div>
+                    <div class="precio-historial">S/ ${item.precioUnitario.toFixed(2)}</div>
                 </div>
                 <div class="historial-item-actions">
-                    <button class="btn-cargar" onclick="historialManager.cargarCalculo(${item.id}, calculadora)">
-                        📂 Cargar
+                    <button class="btn-cargar" data-id="${item.id}" title="Cargar cálculo">
+                        ↻
                     </button>
-                    <button class="btn-eliminar" onclick="historialManager.eliminarCalculo(${item.id})">
-                        🗑️ Eliminar
+                    <button class="btn-eliminar" data-id="${item.id}" title="Eliminar">
+                        ×
                     </button>
                 </div>
             </div>
         `).join('');
+
+        // Configurar swipe gestures
+        this.configurarSwipe();
+    }
+
+    // Configurar swipe gestures para cards
+    configurarSwipe() {
+        const items = document.querySelectorAll('.historial-item');
+        
+        items.forEach(item => {
+            let startX = 0;
+            let currentX = 0;
+            let isSwiping = false;
+
+            item.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isSwiping = true;
+            });
+
+            item.addEventListener('touchmove', (e) => {
+                if (!isSwiping) return;
+                currentX = e.touches[0].clientX;
+                const diff = startX - currentX;
+
+                if (diff > 0) { // Swipe left
+                    item.style.transform = `translateX(-${Math.min(diff, 120)}px)`;
+                }
+            });
+
+            item.addEventListener('touchend', (e) => {
+                if (!isSwiping) return;
+                const diff = startX - currentX;
+
+                if (diff > 60) { // Swipe suficiente
+                    item.classList.add('swiped');
+                    item.style.transform = 'translateX(-120px)';
+                } else {
+                    item.classList.remove('swiped');
+                    item.style.transform = 'translateX(0)';
+                }
+
+                isSwiping = false;
+            });
+
+            // Click en el contenido abre el detalle
+            const content = item.querySelector('.historial-item-content');
+            content.addEventListener('click', (e) => {
+                if (!item.classList.contains('swiped')) {
+                    const id = parseInt(item.dataset.id);
+                    this.verDetalle(id, window.calculadora);
+                }
+            });
+        });
     }
 
     // Compartir cálculo
@@ -259,9 +318,28 @@ Calculado con: Calculadora de Sublimación
     inicializar() {
         this.renderizarHistorial();
 
-        // Event listener para limpiar historial
-        document.getElementById('limpiar-historial-btn').addEventListener('click', () => {
-            this.limpiarHistorial();
+        // Event listeners para botones del historial
+        const listaHistorial = document.getElementById('historial-lista');
+        listaHistorial.addEventListener('click', (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+
+            const item = target.closest('.historial-item');
+
+            if (target.classList.contains('btn-cargar')) {
+                const id = parseInt(target.dataset.id);
+                this.cargarCalculo(id, window.calculadora);
+                // Cerrar swipe después de cargar
+                if (item) {
+                    item.classList.remove('swiped');
+                    item.style.transform = 'translateX(0)';
+                }
+            }
+
+            if (target.classList.contains('btn-eliminar')) {
+                const id = parseInt(target.dataset.id);
+                this.eliminarCalculo(id);
+            }
         });
     }
 }

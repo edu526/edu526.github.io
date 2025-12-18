@@ -67,6 +67,12 @@ class PresetsManager {
     constructor(calculadora) {
         this.calculadora = calculadora;
         this.productoActual = null;
+        this.presets = PRESETS_PRODUCTOS; // Agregar referencia a los presets
+    }
+
+    // Aplicar preset (alias de cargarPreset)
+    aplicarPreset(tipoProducto) {
+        this.cargarPreset(tipoProducto);
     }
 
     // Cargar preset de producto
@@ -90,8 +96,8 @@ class PresetsManager {
         document.getElementById('gastos-generales').value = preset.gastosGenerales;
         document.getElementById('margen-ganancia').value = preset.margenGanancia;
 
-        // Actualizar UI de botones
-        document.querySelectorAll('.product-btn').forEach(btn => {
+        // Actualizar UI de botones (tanto .product-btn como .preset-icon-btn)
+        document.querySelectorAll('.product-btn, .preset-icon-btn').forEach(btn => {
             btn.classList.remove('active');
         });
 
@@ -101,7 +107,7 @@ class PresetsManager {
         }
 
         // Feedback visual
-        this.mostrarNotificacion(`Preset cargado: ${preset.nombre || 'Producto personalizado'}`);
+        // this.mostrarNotificacion(`Preset cargado: ${preset.nombre || 'Producto personalizado'}`);
     }
 
     // Mostrar notificación temporal
@@ -138,7 +144,8 @@ class PresetsManager {
 
     // Inicializar event listeners
     inicializar() {
-        document.querySelectorAll('.product-btn').forEach(btn => {
+        // Buscar tanto .product-btn como .preset-icon-btn
+        document.querySelectorAll('.preset-icon-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const tipoProducto = btn.dataset.product;
                 this.cargarPreset(tipoProducto);
