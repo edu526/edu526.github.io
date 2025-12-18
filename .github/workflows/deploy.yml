@@ -1,0 +1,51 @@
+name: Deploy PWA con versión automática
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'calculadora-sublimacion/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generar versión automática
+        id: version
+        run: |
+          # Usar timestamp + short SHA para versión única
+          VERSION=$(date -u +"%Y%m%d.%H%M%S")-$(git rev-parse --short HEAD)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Versión generada: $VERSION"
+
+      - name: Actualizar versión en Service Worker
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          sed -i "s/__BUILD_VERSION__/$VERSION/g" calculadora-sublimacion/sw.js
+          echo "Service Worker actualizado con versión: $VERSION"
+
+      - name: Commit y push cambios
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          if git diff --quiet calculadora-sublimacion/sw.js; then
+            echo "No hay cambios en sw.js"
+          else
+            git add calculadora-sublimacion/sw.js
+            git commit -m "🚀 Auto-actualizar versión PWA a ${{ steps.version.outputs.VERSION }}"
+            git push
+            echo "✅ Versión actualizada y pusheada"
+          fi
+
+      - name: Notificar versión deployada
+        run: |
+          echo "::notice::PWA deployada con versión ${{ steps.version.outputs.VERSION }}"

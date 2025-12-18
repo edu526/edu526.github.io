@@ -14,6 +14,18 @@
 </head>
 <body>
     <div class="container">
+        <!-- Notificación de actualización -->
+        <div id="update-notification" class="update-notification" style="display: none;">
+            <div class="update-content">
+                <span class="update-icon">🔄</span>
+                <span class="update-text">¡Nueva versión disponible!</span>
+                <div class="update-buttons">
+                    <button id="update-now" class="btn-update-now">Actualizar ahora</button>
+                    <button id="update-later" class="btn-update-later">Más tarde</button>
+                </div>
+            </div>
+        </div>
+        
         <header>
             <h1>Calculadora de Precios de Sublimación</h1>
             <p class="subtitle">Sistema de gestión de costos y precios</p>
@@ -288,11 +300,68 @@
     <script src="js/bulk-discount.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // Registrar Service Worker para PWA
+        // Registrar Service Worker para PWA con notificación de actualización
         if ('serviceWorker' in navigator) {
+            let newWorkerWaiting = null;
+            const updateNotification = document.getElementById('update-notification');
+            const updateNowBtn = document.getElementById('update-now');
+            const updateLaterBtn = document.getElementById('update-later');
+
+            // Función para mostrar notificación de actualización
+            function showUpdateNotification() {
+                updateNotification.style.display = 'block';
+                updateNotification.classList.add('show');
+            }
+
+            // Función para ocultar notificación
+            function hideUpdateNotification() {
+                updateNotification.classList.remove('show');
+                setTimeout(() => {
+                    updateNotification.style.display = 'none';
+                }, 300);
+            }
+
+            // Actualizar ahora
+            updateNowBtn.addEventListener('click', () => {
+                if (newWorkerWaiting) {
+                    newWorkerWaiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+                hideUpdateNotification();
+            });
+
+            // Actualizar más tarde
+            updateLaterBtn.addEventListener('click', () => {
+                hideUpdateNotification();
+            });
+
             navigator.serviceWorker.register('/calculadora-sublimacion/sw.js')
-                .then(reg => console.log('Service Worker registrado', reg))
+                .then(reg => {
+                    console.log('Service Worker registrado', reg);
+
+                    // Verificar actualizaciones cada 60 segundos
+                    setInterval(() => {
+                        reg.update();
+                    }, 60000);
+
+                    // Detectar cuando hay una nueva versión
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorkerWaiting = newWorker;
+
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // Nueva versión disponible, mostrar notificación
+                                showUpdateNotification();
+                            }
+                        });
+                    });
+                })
                 .catch(err => console.log('Error al registrar Service Worker', err));
+
+            // Recargar cuando el nuevo service worker tome control
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
+            });
         }
     </script>
 </body>
