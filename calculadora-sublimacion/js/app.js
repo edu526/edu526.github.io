@@ -4,7 +4,6 @@
 let calculadora;
 let presetsManager;
 let historialManager;
-let calculadoraTinta;
 let descuentosManager;
 let ultimosResultados;
 
@@ -42,12 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
   calculadora = new CalculadoraSublimacion();
   presetsManager = new PresetsManager(calculadora);
   historialManager = new HistorialManager();
-  calculadoraTinta = new CalculadoraTinta();
   descuentosManager = new DescuentosManager();
 
   // Inicializar componentes
   historialManager.inicializar();
-  calculadoraTinta.inicializar();
   descuentosManager.inicializar();
 
   // Inicializar navegación por tabs

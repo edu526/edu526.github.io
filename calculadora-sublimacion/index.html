@@ -50,13 +50,7 @@
 
                     <div class="form-group">
                         <label for="costo-tinta">Costo de tinta/sublimación (S/):</label>
-                        <div class="input-with-button">
-                            <input type="number" id="costo-tinta" step="0.01" min="0" placeholder="0.00">
-                            <button type="button" class="btn-calculator" id="abrir-calculadora-tinta" title="Calcular costo de tinta">
-                                🧮
-                            </button>
-                        </div>
-                        <small>Costo de tinta por unidad (usa la calculadora 🧮)</small>
+                        <input type="number" id="costo-tinta" step="0.01" min="0" placeholder="0.00">
                     </div>
 
                     <div class="form-group">
@@ -288,68 +282,9 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal Calculadora de Tinta -->
-    <div id="modal-calculadora-tinta" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🧮 Calculadora de Costo de Tinta</h2>
-                <button class="modal-close" id="cerrar-modal-tinta">&times;</button>
-            </div>
-
-            <div class="modal-body">
-                <p class="modal-description">
-                    Calcula el costo de tinta por unidad basándote en el precio de la botella y su rendimiento.
-                </p>
-
-                <div class="form-group">
-                    <label for="precio-botella">Precio de la botella de tinta (S/):</label>
-                    <input type="number" id="precio-botella" step="0.01" min="0" placeholder="80.00">
-                </div>
-
-                <div class="form-group">
-                    <label for="rendimiento-tinta">Rendimiento (unidades por botella):</label>
-                    <input type="number" id="rendimiento-tinta" step="1" min="1" placeholder="100">
-                    <small>¿Cuántos productos puedes hacer con una botella?</small>
-                </div>
-
-                <div class="presets-rendimiento">
-                    <p><strong>Rendimientos de referencia:</strong></p>
-                    <button type="button" class="btn-preset-rendimiento" data-rendimiento="100">
-                        Tazas (~100)
-                    </button>
-                    <button type="button" class="btn-preset-rendimiento" data-rendimiento="32">
-                        Polos full (~32)
-                    </button>
-                    <button type="button" class="btn-preset-rendimiento" data-rendimiento="150">
-                        Llaveros (~150)
-                    </button>
-                    <button type="button" class="btn-preset-rendimiento" data-rendimiento="80">
-                        Tomatodos (~80)
-                    </button>
-                </div>
-
-                <div class="resultado-tinta-modal" id="resultado-tinta-modal" style="display: none;">
-                    <h3>Resultado:</h3>
-                    <div class="resultado-valor">
-                        Costo por unidad: <strong id="costo-unitario-tinta">S/ 0.00</strong>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-primary" id="calcular-tinta-btn">Calcular</button>
-                <button type="button" class="btn-success" id="aplicar-tinta-btn" style="display: none;">
-                    Aplicar al formulario
-                </button>
-                <button type="button" class="btn-secondary" id="cancelar-modal-tinta">Cancelar</button>
-            </div>
-        </div>
-    </div>
     <script src="js/calculator.js"></script>
     <script src="js/presets.js"></script>
     <script src="js/history.js"></script>
-    <script src="js/ink-calculator.js"></script>
     <script src="js/bulk-discount.js"></script>
     <script src="js/app.js"></script>
     <script>

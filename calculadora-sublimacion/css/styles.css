@@ -61,7 +61,6 @@ header {
     background: white;
     color: var(--dark-color);
     padding: 12px 20px;
-    box-shadow: var(--shadow-sm);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -119,13 +118,12 @@ header h1::before {
     display: flex;
     align-items: center;
     gap: 16px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     transition: all 0.3s ease;
 }
 
 .stat-card:hover {
-    box-shadow: var(--shadow-md);
+    border-color: var(--primary-color);
     transform: translateY(-2px);
 }
 
@@ -138,7 +136,6 @@ header h1::before {
     justify-content: center;
     font-size: 1.8em;
     flex-shrink: 0;
-    box-shadow: var(--shadow);
 }
 
 .stat-info {
@@ -255,14 +252,12 @@ header h1::before {
     background: white;
     border-radius: var(--radius);
     padding: 24px;
-    box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     height: 100%;
 }
 
 .card:hover {
-    box-shadow: var(--shadow-md);
     border-color: var(--primary-color);
 }
 
@@ -282,9 +277,8 @@ header h1::before {
     content: '';
     width: 6px;
     height: 6px;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    background: var(--primary-color);
     border-radius: 50%;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 .card h3 {
@@ -303,7 +297,7 @@ header h1::before {
 }
 
 .product-btn {
-    background: var(--light-color);
+    background: white;
     border: 2px solid var(--border-color);
     border-radius: var(--radius);
     padding: 24px 12px;
@@ -325,34 +319,15 @@ header h1::before {
     -webkit-user-select: none;
 }
 
-.product-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
 .product-btn:hover {
-    background: white;
     border-color: var(--primary-color);
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    background: var(--light-color);
 }
 
 .product-btn.active {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    background: var(--primary-color);
     color: white;
-    border-color: var(--primary-dark);
-    box-shadow: var(--shadow);
-}
-
-.product-btn.active::before {
-    opacity: 1;
+    border-color: var(--primary-color);
 }
 
 .product-btn .icon {
@@ -418,94 +393,60 @@ header h1::before {
 .btn-success,
 .btn-info {
     padding: 14px 28px;
-    border: none;
+    background: white;
     border-radius: var(--radius);
     font-size: 1em;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow);
     position: relative;
-    overflow: hidden;
     /* Mejorar área táctil en móviles */
     min-height: 44px;
     touch-action: manipulation;
     user-select: none;
     -webkit-user-select: none;
-}
-
-.btn-primary::before,
-.btn-secondary::before,
-.btn-success::before,
-.btn-info::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-.btn-primary:hover::before,
-.btn-secondary:hover::before,
-.btn-success:hover::before,
-.btn-info:hover::before {
-    width: 300px;
-    height: 300px;
-}
-
-.btn-primary,
-.btn-secondary,
-.btn-success,
-.btn-info {
     margin-right: 10px;
     margin-top: 10px;
-    position: relative;
-    z-index: 1;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
 }
 
 .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
+    background: var(--primary-color);
+    color: white;
 }
 
 .btn-secondary {
+    border: 2px solid var(--dark-lighter);
+    color: var(--dark-lighter);
+}
+
+.btn-secondary:hover {
     background: var(--dark-lighter);
     color: white;
 }
 
-.btn-secondary:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-}
-
 .btn-success {
-    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
-    color: white;
+    border: 2px solid var(--secondary-color);
+    color: var(--secondary-color);
 }
 
 .btn-success:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-info {
-    background: linear-gradient(135deg, var(--info-color), #2563eb);
+    background: var(--secondary-color);
     color: white;
 }
 
+.btn-info {
+    border: 2px solid var(--info-color);
+    color: var(--info-color);
+}
+
 .btn-info:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
+    background: var(--info-color);
+    color: white;
 }
 
 .btn-small {
@@ -544,26 +485,26 @@ header h1::before {
 }
 
 .result-item.total {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
+    background: white;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
     font-size: 1.4em;
     font-weight: 700;
     margin-bottom: 16px;
-    box-shadow: var(--shadow);
 }
 
 .result-item.highlight {
-    background: linear-gradient(135deg, var(--warning-color), #d97706);
-    color: white;
+    background: white;
+    color: var(--warning-color);
+    border: 2px solid var(--warning-color);
     font-weight: 700;
-    border-left: 4px solid #b45309;
 }
 
 .result-item.profit {
-    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
-    color: white;
+    background: white;
+    color: var(--secondary-color);
+    border: 2px solid var(--secondary-color);
     font-weight: 700;
-    border-left: 4px solid #047857;
 }
 
 .result-item .label {
@@ -607,8 +548,8 @@ hr {
     padding: 12px 16px;
     border-radius: 8px;
     margin-bottom: 8px;
+    border: 2px solid var(--border-color);
     border-left: 3px solid var(--primary-color);
-    box-shadow: var(--shadow-sm);
     transition: transform 0.3s ease;
     display: flex;
     justify-content: space-between;
@@ -1076,20 +1017,21 @@ footer {
 
 .btn-calculator {
     padding: 14px 18px;
-    background: linear-gradient(135deg, var(--warning-color), #d97706);
-    border: none;
+    background: white;
+    border: 2px solid var(--warning-color);
     border-radius: var(--radius);
     font-size: 1.3em;
     cursor: pointer;
     transition: all 0.3s ease;
     flex-shrink: 0;
-    color: white;
-    box-shadow: var(--shadow);
+    color: var(--warning-color);
+    font-weight: 600;
 }
 
 .btn-calculator:hover {
+    background: var(--warning-color);
+    color: white;
     transform: scale(1.05);
-    box-shadow: var(--shadow-md);
 }
 
 /* Modal - Dashboard Style */
@@ -1114,12 +1056,12 @@ footer {
 
 .modal-content {
     background: white;
+    border: 2px solid var(--border-color);
     border-radius: var(--radius-lg);
     width: 95%;
     max-width: 500px;
     max-height: 85vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-lg);
     animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0;
 }
@@ -1213,8 +1155,8 @@ footer {
     gap: 8px;
     padding: 8px;
     background: white;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
-    box-shadow: var(--shadow-sm);
     margin-bottom: 16px;
     overflow-x: auto;
     scrollbar-width: none;
@@ -1231,7 +1173,7 @@ footer {
     height: 48px;
     border-radius: 8px;
     border: 2px solid var(--border-color);
-    background: var(--light-color);
+    background: white;
     font-size: 1.5em;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -1241,14 +1183,15 @@ footer {
 }
 
 .preset-icon-btn:hover {
-    background: white;
     border-color: var(--primary-color);
+    background: var(--light-color);
     transform: scale(1.05);
 }
 
 .preset-icon-btn.active {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    border-color: var(--primary-dark);
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
     transform: scale(1.05);
 }
 
@@ -1468,28 +1411,28 @@ footer {
 
 .modal-header {
     padding: 24px 28px;
-    border-bottom: 2px solid var(--light-color);
+    border-bottom: 2px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
+    background: white;
+    color: var(--dark-color);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .modal-header h2 {
     margin: 0;
-    color: white;
+    color: var(--dark-color);
     font-size: 1.5em;
     font-weight: 700;
 }
 
 .modal-close {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
+    background: white;
+    border: 2px solid var(--border-color);
     font-size: 1.8em;
     cursor: pointer;
-    color: white;
+    color: var(--text-secondary);
     line-height: 1;
     padding: 0;
     width: 36px;
@@ -1502,7 +1445,8 @@ footer {
 }
 
 .modal-close:hover {
-    background: rgba(255, 255, 255, 0.3);
+    border-color: var(--danger-color);
+    color: var(--danger-color);
     transform: rotate(90deg);
 }
 
@@ -1519,11 +1463,11 @@ footer {
 
 .modal-footer {
     padding: 20px 28px;
-    border-top: 2px solid var(--light-color);
+    border-top: 2px solid var(--border-color);
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    background: var(--light-color);
+    background: white;
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
@@ -1533,8 +1477,9 @@ footer {
 
 #modal-descuentos .modal-header {
     padding: 12px 16px;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
+    background: white;
+    color: var(--dark-color);
+    border-bottom: 2px solid var(--border-color);
 }
 
 #modal-descuentos .modal-header h2 {
@@ -1543,9 +1488,9 @@ footer {
 }
 
 #modal-descuentos .modal-close {
-    color: white;
+    color: var(--text-secondary);
     font-size: 1.6rem;
-    opacity: 0.9;
+    border: 2px solid var(--border-color);
 }
 
 #modal-descuentos .modal-body {
@@ -1643,7 +1588,7 @@ footer {
     #modal-editar-rango .modal-footer {
         flex-direction: column;
     }
-    
+
     #modal-editar-rango .modal-footer button {
         width: 100%;
     }
@@ -1740,70 +1685,6 @@ footer {
     }
 }
 
-
-/* Presets de rendimiento - Dashboard Style */
-.presets-rendimiento {
-    background: var(--light-color);
-    padding: 18px;
-    border-radius: var(--radius);
-    margin: 24px 0;
-    border: 2px dashed var(--border-color);
-}
-
-.presets-rendimiento p {
-    margin-bottom: 12px;
-    color: var(--text-primary);
-    font-weight: 600;
-}
-
-.btn-preset-rendimiento {
-    background: white;
-    border: 2px solid var(--primary-color);
-    color: var(--primary-color);
-    padding: 10px 18px;
-    border-radius: var(--radius);
-    cursor: pointer;
-    margin: 6px;
-    font-size: 0.9em;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-preset-rendimiento:hover {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-}
-
-/* Resultado en modal */
-.resultado-tinta-modal {
-    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
-    color: white;
-    padding: 24px;
-    border-radius: var(--radius);
-    margin-top: 24px;
-    text-align: center;
-    box-shadow: var(--shadow);
-}
-
-.resultado-tinta-modal h3 {
-    margin: 0 0 12px 0;
-    font-size: 1.15em;
-    font-weight: 700;
-}
-
-.resultado-valor {
-    font-size: 1.5em;
-    font-weight: 700;
-}
-
-.resultado-valor strong {
-    font-size: 1.2em;
-    display: block;
-    margin-top: 8px;
-}
-
 /* Checkbox personalizado - Dashboard Style */
 input[type="checkbox"] {
     appearance: none;
@@ -1826,8 +1707,9 @@ input[type="checkbox"] {
 
 #modal-resultados .modal-header {
     padding: 12px 16px;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
+    background: white;
+    color: var(--dark-color);
+    border-bottom: 2px solid var(--border-color);
 }
 
 #modal-resultados .modal-header h2 {
@@ -1836,13 +1718,14 @@ input[type="checkbox"] {
 }
 
 #modal-resultados .modal-close {
-    color: white;
+    color: var(--text-secondary);
     font-size: 1.6rem;
-    opacity: 0.9;
+    border: 2px solid var(--border-color);
 }
 
 #modal-resultados .modal-close:hover {
-    opacity: 1;
+    border-color: var(--danger-color);
+    color: var(--danger-color);
 }
 
 #modal-resultados .modal-body {
@@ -1972,8 +1855,8 @@ input[type="checkbox"]:hover {
 }
 
 input[type="checkbox"]:checked {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    border-color: var(--primary-dark);
+    background: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 input[type="checkbox"]:checked::before {
@@ -2066,10 +1949,9 @@ label {
     flex-direction: column;
     gap: 0;
     margin-bottom: 15px;
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
 }
 
 .rango-item {
@@ -2164,11 +2046,11 @@ label {
     .rango-info-label {
         display: none;
     }
-    
+
     .rango-descuento-display {
         justify-self: end;
     }
-    
+
     .btn-icon-danger {
         grid-column: 1 / -1;
         width: 100%;
