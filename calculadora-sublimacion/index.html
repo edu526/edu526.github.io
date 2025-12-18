@@ -528,48 +528,50 @@
                     const jsonString = JSON.stringify(data, null, 2);
                     const blob = new Blob([jsonString], { type: 'application/json' });
 
-                    // Descargar archivo primero
-                    const url = URL.createObjectURL(blob);
+                    // Intentar compartir con Web Share API (funciona en Android/iOS)
+                    if (navigator.share) {
+                        try {
+                            const file = new File([blob], fileName, { type: 'application/json' });
+
+                            // Verificar si puede compartir archivos
+                            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                                await navigator.share({
+                                    title: 'Backup Calculadora Sublimación',
+                                    text: `Backup de datos - ${fecha}\n\n📋 Historial: ${data.historial?.length || 0} registros\n📊 Descuentos: ${data.descuentos?.length || 0} rangos`,
+                                    files: [file]
+                                });
+                                console.log('✅ Archivo compartido exitosamente');
+                                return;
+                            }
+                        } catch (shareError) {
+                            // Si cancela, no hacer nada
+                            if (shareError.name === 'AbortError') {
+                                console.log('Compartir cancelado por el usuario');
+                                return;
+                            }
+                            console.warn('No se pudo compartir:', shareError);
+                        }
+                    }
+
+                    // Fallback: Descargar archivo
+                    const downloadUrl = URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = url;
+                    a.href = downloadUrl;
                     a.download = fileName;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
+                    URL.revokeObjectURL(downloadUrl);
 
                     console.log('✅ Archivo descargado');
-
-                    // Preguntar si quiere compartir por WhatsApp
-                    const compartir = confirm(
+                    alert(
                         '✅ Archivo descargado!\n\n' +
-                        '¿Deseas compartirlo por WhatsApp?\n\n' +
-                        'Se abrirá WhatsApp con el archivo listo para enviar.'
+                        `${fileName}\n\n` +
+                        '💡 Para compartir por WhatsApp:\n' +
+                        '1. Abre WhatsApp\n' +
+                        '2. Selecciona un contacto\n' +
+                        '3. Adjunta el archivo desde tus descargas'
                     );
-
-                    if (compartir) {
-                        // Crear mensaje para WhatsApp con instrucciones
-                        const mensaje = encodeURIComponent(
-                            `📊 *Backup Calculadora Sublimación*\n\n` +
-                            `Fecha: ${fecha}\n` +
-                            `📋 Historial: ${data.historial?.length || 0} registros\n` +
-                            `📊 Descuentos: ${data.descuentos?.length || 0} rangos\n\n` +
-                            `_Archivo descargado en tu dispositivo: ${fileName}_\n\n` +
-                            `Para importar: abre la app → Configuración → Importar Datos`
-                        );
-
-                        // Abrir WhatsApp
-                        const whatsappUrl = `https://api.whatsapp.com/send?text=${mensaje}`;
-                        window.open(whatsappUrl, '_blank');
-
-                        alert(
-                            '📱 WhatsApp abierto!\n\n' +
-                            'Selecciona el contacto y envía el mensaje.\n' +
-                            'Luego adjunta el archivo descargado desde tus archivos.'
-                        );
-                    }
-
-                    console.log('✅ Datos exportados correctamente');
                 } catch (error) {
                     console.error('❌ Error al exportar datos:', error);
                     alert('❌ Error al exportar datos. Ver console para detalles.');
